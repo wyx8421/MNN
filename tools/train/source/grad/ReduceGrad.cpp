@@ -13,7 +13,7 @@ using namespace MNN::Express;
 
 class ReduceGrad : public OpGrad {
 public:
-    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr, const std::vector<Express::VARP>& output,
+    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr,
                                               const std::vector<Express::VARP>& backwardOutput) override {
         std::vector<Express::VARP> result;
         auto inputs = expr->inputs();
@@ -52,7 +52,7 @@ public:
         if (forwardOp->main.AsReductionParam()->operation == ReductionType_MEAN) {
             float gradCount  = outputDiff->getInfo()->size;
             float inputCount = inputs[0]->getInfo()->size;
-            outputDiff       = _Multiply(outputDiff, _Const(gradCount / inputCount));
+            outputDiff       = _Multiply(outputDiff, _Scalar<float>((float)gradCount / (float)inputCount));
         }
 
         // this should be common operations, to expand grads to inputs shape
@@ -66,14 +66,21 @@ public:
             newOp->main.AsSqueezeParam()->squeezeDims = reductionDims;
             outputDiff                                = Variable::create(Expr::create(std::move(newOp), {outputDiff}));
         }
-        result[0] = _Add(init, outputDiff);
-
+        if (forwardOp->main.AsReductionParam()->operation == ReductionType_MAXIMUM) {
+            auto output = Variable::create(expr);
+            if (!keepDim) {
+                output = _Unsqueeze(output, reductionDims);
+            }
+            result[0] =  (_Sign(inputs[0] - output) + _Scalar<float>(1.0f)) * outputDiff;
+        } else {
+            result[0] = _Add(init, outputDiff);
+        }
         return result;
     }
 };
 class FillGrad : public OpGrad {
 public:
-    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr, const std::vector<Express::VARP>& output,
+    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr,
                                               const std::vector<Express::VARP>& backwardOutput) override {
         return {backwardOutput[0].sum({})};
     }

@@ -6,6 +6,7 @@
 //  Copyright © 2018, Alibaba Group Holding Limited
 //
 
+#include <math.h>
 #include "MNN_generated.h"
 #include "OnnxExtraManager.hpp"
 namespace MNN {
@@ -18,16 +19,19 @@ class OnnxBatchNormTransform : public OnnxExtraManager::Transform {
         MNN_CHECK(inputs.size() == 5, "BatchNorm should have 5 inputs");
 
         int channels  = 1;
-        float epsilon = 0.001;
+        float epsilon = 1e-10;
 
         auto bnOp       = expr->get();
         auto extraParam = bnOp->main_as_Extra();
-        const int size  = extraParam->attr()->size();
-        for (int i = 0; i < size; ++i) {
-            auto attr       = extraParam->attr()->GetAs<Attribute>(i);
-            const auto& key = attr->key()->str();
-            if (key == "epsilon") {
-                epsilon = attr->f();
+        int size        = 0;
+        if (nullptr != extraParam->attr()) {
+            size = extraParam->attr()->size();
+            for (int i = 0; i < size; ++i) {
+                auto attr       = extraParam->attr()->GetAs<Attribute>(i);
+                const auto& key = attr->key()->str();
+                if (key == "epsilon") {
+                    epsilon = attr->f();
+                }
             }
         }
 
@@ -67,23 +71,86 @@ class OnnxBatchNormTransform : public OnnxExtraManager::Transform {
         memcpy(batchnorm->meanData.data(), meanDataPtr, mean->getInfo()->size * sizeof(float));
         auto varPtr = variance->readMap<float>();
         for (int i = 0; i < channels; ++i) {
-            batchnorm->varData[i] = varPtr[i] + epsilon;
+            batchnorm->varData[i] = varPtr[i];
         }
 
-        // create merged op
-        std::unique_ptr<OpT> mergedOp(new OpT);
-        mergedOp->name = expr->name();
-        mergedOp->type       = OpType_BatchNorm;
-        mergedOp->main.type  = OpParameter_BatchNorm;
-        mergedOp->main.value = batchnorm.release();
+        std::unique_ptr<OpT> mnnBnOp(new OpT);
+        mnnBnOp->name      = expr->name();
+        mnnBnOp->type      = OpType_BatchNorm;
+        mnnBnOp->main.type = OpParameter_BatchNorm;
+        {
+            auto bnParam        = new MNN::BatchNormT;
+            mnnBnOp->main.value = bnParam;
+            bnParam->channels   = batchnorm->channels;
+            bnParam->slopeData.resize(batchnorm->channels);
+            bnParam->biasData.resize(batchnorm->channels);
+            bnParam->meanData.resize(batchnorm->channels);
+            bnParam->varData.resize(batchnorm->channels);
+            const float* slopeDataPtr = batchnorm->slopeData.data();
+            const float* biasDataPtr  = batchnorm->biasData.data();
+            const float* meanDataPtr  = batchnorm->meanData.data();
+            const float* varDataPtr   = batchnorm->varData.data();
 
-        return Expr::create(mergedOp.get(), {inputs[0]});
+            for (int i = 0; i < batchnorm->channels; i++) {
+                bnParam->slopeData[i] = slopeDataPtr[i];
+                bnParam->biasData[i]  = biasDataPtr[i];
+                bnParam->meanData[i]  = meanDataPtr[i];
+                bnParam->varData[i]   = varDataPtr[i];
+            }
+            bnParam->epsilon = epsilon;
+        }
+        // create merged op
+        auto newExpr = Expr::create(mnnBnOp.get(), {inputs[0]});
+        newExpr->setName(expr->name());
+        auto res = Variable::create(newExpr);
+        return res->expr().first;
+    }
+};
+
+class OnnxInstanceNormalTransform : public OnnxExtraManager::Transform {
+    virtual EXPRP onExecute(EXPRP expr) const override {
+        auto inputs = expr->inputs();
+
+        MNN_CHECK(inputs.size() == 3, "InstanceNormal should have 3 inputs");
+        auto input = inputs[0];
+
+        int channels  = 1;
+        float epsilon = 1e-10;
+
+        auto bnOp       = expr->get();
+        auto extraParam = bnOp->main_as_Extra();
+        int size        = 0;
+        if (nullptr != extraParam->attr()) {
+            size = extraParam->attr()->size();
+            for (int i = 0; i < size; ++i) {
+                auto attr       = extraParam->attr()->GetAs<Attribute>(i);
+                const auto& key = attr->key()->str();
+                if (key == "epsilon") {
+                    epsilon = attr->f();
+                }
+            }
+        }
+        auto scale      = _Unsqueeze(inputs[1], {0, 2, 3});
+        auto bias       = _Unsqueeze(inputs[2], {0, 2, 3});
+        auto epsilonVar = _Scalar<float>(epsilon);
+        auto mean       = _ReduceMean(input, {2, 3}, true);
+        auto temp       = input - mean;
+        temp            = temp * temp;
+        auto var        = _ReduceMean(temp, {2, 3}, true);
+        auto varRev     = _Rsqrt(var + epsilonVar);
+        auto alpha      = scale * varRev;
+        auto beta       = bias - alpha * mean;
+        auto res        = input * alpha + beta;
+        res->setName(expr->name());
+        return res->expr().first;
     }
 };
 
 static auto gRegister = []() {
     OnnxExtraManager::get()->insert("BatchNormalization",
                                     std::shared_ptr<OnnxExtraManager::Transform>(new OnnxBatchNormTransform));
+    OnnxExtraManager::get()->insert("InstanceNormalization",
+                                    std::shared_ptr<OnnxExtraManager::Transform>(new OnnxInstanceNormalTransform));
     return true;
 }();
 

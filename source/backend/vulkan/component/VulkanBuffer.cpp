@@ -15,7 +15,9 @@ VulkanBuffer::VulkanBuffer(const VulkanMemoryPool& pool, bool seperate, size_t s
     : mPool(pool) {
     MNN_ASSERT(size > 0);
     mSize = size;
-    CALL_VK(mPool.device().createBuffer(mBuffer, mSize, usage, shared));
+    mShared = shared;
+    mBuffer = const_cast<VulkanMemoryPool&>(mPool).allocBuffer(size, usage, shared);
+    mUsage = usage;
 
     VkMemoryRequirements memReq;
     mPool.device().getBufferMemoryRequirements(mBuffer, memReq);
@@ -28,20 +30,21 @@ VulkanBuffer::VulkanBuffer(const VulkanMemoryPool& pool, bool seperate, size_t s
         ::memcpy(data, hostData, size);
         mPool.device().unmapMemory(mMemory->get());
     }
-
     CALL_VK(mPool.device().bindBufferMemory(mBuffer, mMemory->get()));
 }
 
 VulkanBuffer::~VulkanBuffer() {
-    mPool.device().destroyBuffer(mBuffer);
+    const_cast<VulkanMemoryPool&>(mPool).returnBuffer(mBuffer, mSize, mUsage, mShared);
     if (!mReleased) {
-        const_cast<VulkanMemoryPool&>(mPool).returnMemory(mMemory, true);
+        const_cast<VulkanMemoryPool&>(mPool).returnMemory(mMemory);
     }
 }
 void* VulkanBuffer::map(int start, int size) const {
+    const auto& limits = mPool.device().proty().limits;
     if (size < 0) {
         size = mSize;
     }
+    size = UP_DIV(size, limits.nonCoherentAtomSize) * limits.nonCoherentAtomSize;
     void* data = nullptr;
     CALL_VK(mPool.device().mapMemory(mMemory->get(), start, size, 0, &data));
     return data;
@@ -59,9 +62,11 @@ void VulkanBuffer::release() {
 
 void VulkanBuffer::flush(bool write, int start, int size) const {
     VkMappedMemoryRange range;
+    const auto& limits = mPool.device().proty().limits;
+    range.sType  = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
     range.memory = mMemory->get();
     range.offset = start;
-    range.size   = size;
+    range.size   = UP_DIV(size, limits.nonCoherentAtomSize) * limits.nonCoherentAtomSize;
     range.pNext  = nullptr;
 
     if (write) {

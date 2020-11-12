@@ -29,6 +29,8 @@ static const int gDefaultUnit = 3;
 static void _winograd(const DeconvolutionWithStride::ComputeUnit& unit, int threadId, int strideX, int strideY,
                       const Tensor* src, const Tensor* dst, std::map<int, std::shared_ptr<Tensor>>& sourceTransformMap,
                       std::map<int, bool>& sourceTransformed) {
+    auto CONVOLUTION_TILED_NUMBER = MNNGetConvolutionTileNumber();
+
     auto srcUnit = unit.winogradInfo.srcUnitX;
     auto buffer  = sourceTransformMap[srcUnit];
     // We allocated the buffer with 2*numberThread
@@ -85,6 +87,7 @@ static void _winograd(const DeconvolutionWithStride::ComputeUnit& unit, int thre
 static void _gemmAndIm2col(const DeconvolutionWithStride::ComputeUnit& unit, int threadId, int strideX, int strideY,
                            const Tensor* src, const Tensor* dst) {
     auto tempColAddr = unit.dstBuffer->host<float>() + unit.dstBuffer->stride(0) * threadId;
+    auto CONVOLUTION_TILED_NUMBER = MNNGetConvolutionTileNumber();
     int ocDiv4       = dst->length(3) / 4 / CONVOLUTION_TILED_NUMBER;
     int count        = ocDiv4 * unit.xUnit * unit.yUnit;
     auto weightAddr  = unit.weight->host<float>();
@@ -120,8 +123,13 @@ DeconvolutionWithStride::DeconvolutionWithStride(const Tensor* input, const Op* 
     int outputCount = common->outputCount();
     int kx          = common->kernelX();
     int ky          = common->kernelY();
-    // TODO, use common->inputCount to get srcCount
-    int srcCount    = conv2D->weight()->size() / kx / ky / outputCount;
+    
+    const float* tempWeight = nullptr;
+    int tempWeightSize   = 0;
+    int srcCount = 0;
+    std::shared_ptr<ConvolutionCommon::Int8Common> quanCommon;
+    ConvolutionCommon::getConvParameters(&quanCommon, conv2D, &tempWeight, &tempWeightSize);
+    srcCount = tempWeightSize / kx / ky / outputCount;
 
     int sy = common->strideY();
     int sx = common->strideX();
@@ -205,10 +213,16 @@ void DeconvolutionWithStride::_extract(const Op* convOp) {
     int outputCount = common->outputCount();
     int kx          = common->kernelX();
     int ky          = common->kernelY();
-    // TODO, use common->inputCount to get srcCount
-    int srcCount    = conv2D->weight()->size() / kx / ky / outputCount;
+
+    const float* tempWeight = nullptr;
+    int tempWeightSize   = 0;
+    int srcCount = 0;
+    std::shared_ptr<ConvolutionCommon::Int8Common> quanCommon;
+    ConvolutionCommon::getConvParameters(&quanCommon, conv2D, &tempWeight, &tempWeightSize);
+    srcCount = tempWeightSize / kx / ky / outputCount;
+    
     std::shared_ptr<Tensor> weightWrap(
-        Tensor::create<float>(std::vector<int>{srcCount, outputCount, ky * kx}, (void*)conv2D->weight()->data()));
+        Tensor::create<float>(std::vector<int>{srcCount, outputCount, ky * kx}, (void*)tempWeight));
 
     int sy = common->strideY();
     int sx = common->strideX();
@@ -287,6 +301,7 @@ void DeconvolutionWithStride::_extract(const Op* convOp) {
                 }
             }
         }
+        MNNReorder4x4ByPlatform(unit.weight->host<float>(), unit.weight->elementSize() / 16);
     }
 }
 
@@ -301,6 +316,7 @@ ErrorCode DeconvolutionWithStride::onResize(const std::vector<Tensor*>& inputs, 
     auto ic     = input->channel();
     auto oc     = output->channel();
 
+    auto CONVOLUTION_TILED_NUMBER = MNNGetConvolutionTileNumber();
     int numThread = std::max(1, ((CPUBackend*)backend())->threadNumber());
     mSrcBuffer.reset(Tensor::createDevice<float>(
         std::vector<int>{numThread, gDefaultUnit, gDefaultUnit, CONVOLUTION_TILED_NUMBER * ALIGN_UP4(ic)}));
@@ -382,6 +398,7 @@ ErrorCode DeconvolutionWithStride::onExecute(const std::vector<Tensor*>& inputs,
 
     int strideX = mStrideX;
     int strideY = mStrideY;
+    auto CONVOLUTION_TILED_NUMBER = MNNGetConvolutionTileNumber();
 
     auto postFunction = mPostFunction;
     //        FUNC_PRINT(mPadX);

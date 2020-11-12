@@ -144,7 +144,6 @@ ErrorCode DepthwiseConvInt8Execution::onResize(const std::vector<Tensor*>& input
 
     mGlobalWorkSize         = {static_cast<uint32_t>(UP_DIV(output->channel(), 4)), static_cast<uint32_t>(output->width()),
                         static_cast<uint32_t>(output->batch() * output->height())};
-    mLocalWorkSize = localWS3DDefault(mGlobalWorkSize, mMaxWorkGroupSize, mOpenCLBackend->getOpenCLRuntime());
 
     int inputImageShape[2]  = {input->height(), input->width()};
     int outputImageShape[2] = {output->height(), output->width()};
@@ -171,13 +170,35 @@ ErrorCode DepthwiseConvInt8Execution::onResize(const std::vector<Tensor*>& input
     kernel->setArg(idx++, sizeof(dilationShape), dilationShape);
     kernel->setArg(idx++, UP_DIV(output->width(), 4));
     kernel->setArg(idx++, UP_DIV(output->channel(), 4));
+    
+    std::string name = "depthwiseConvInt8";
+    mLocalWorkSize = localWS3DDefault(mGlobalWorkSize, mMaxWorkGroupSize, mOpenCLBackend->getOpenCLRuntime(), name, mKernel);
+    
     return NO_ERROR;
 }
 
 ErrorCode DepthwiseConvInt8Execution::onExecute(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs) {
-
-    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize, mOpenCLBackend->getOpenCLRuntime());
-
+#ifdef LOG_VERBOSE
+    MNN_PRINT("Start DepthwiseConvInt8Execution onExecute... \n");
+#endif
+    
+#ifdef ENABLE_OPENCL_TIME_PROFILER
+    cl::Event event;
+    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize,
+                       mOpenCLBackend->getOpenCLRuntime(),
+                       &event);
+    
+    int costTime = (int)mOpenCLBackend->getOpenCLRuntime()->getCostTime(&event);
+    MNN_PRINT("kernel cost:%d    us DepthwiseConvInt8\n",costTime);
+#else
+    
+    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize,
+                       mOpenCLBackend->getOpenCLRuntime());
+#endif
+    
+#ifdef LOG_VERBOSE
+    MNN_PRINT("End DepthwiseConvInt8Execution onExecute... \n");
+#endif
     return NO_ERROR;
 }
 

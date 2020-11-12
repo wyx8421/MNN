@@ -10,8 +10,24 @@
 #include <map>
 #include "MNN_generated.h"
 #include "core/TensorUtils.hpp"
+#include "core/MNNMemoryUtils.h"
 namespace MNN {
 namespace Express {
+Expr::Inside::Inside(int outputSize) {
+    mOutputInfos.resize(outputSize);
+    mOutputTensors.resize(outputSize);
+    for (int i=0; i<outputSize; ++i) {
+        mOutputTensors[i] = new Tensor;
+        TensorUtils::getDescribe(mOutputTensors[i])->memoryType = Tensor::InsideDescribe::MEMORY_HOST;
+    }
+}
+Expr::Inside::~Inside() {
+    for (auto t : mOutputTensors) {
+        delete t;
+    }
+}
+
+
 #define CONVERT(src, dst, f)\
 if (f == src) return dst;
 
@@ -22,7 +38,7 @@ int Utils::convertFormat(Dimensionformat format) {
     return MNN_DATA_FORMAT_UNKNOWN;
 }
 
-int Utils::convertDataType(halide_type_t type) {
+DataType Utils::convertDataType(halide_type_t type) {
     if (type.code == halide_type_float) {
         return DataType_DT_FLOAT;
     }
@@ -37,7 +53,7 @@ int Utils::convertDataType(halide_type_t type) {
     }
     return DataType_DT_INVALID;
 }
-halide_type_t Utils::revertDataType(int dataType) {
+halide_type_t Utils::revertDataType(DataType dataType) {
     CONVERT(DataType_DT_FLOAT, halide_type_of<float>(), dataType);
     CONVERT(DataType_DT_INT32, halide_type_of<int32_t>(), dataType);
     CONVERT(DataType_DT_INT64, halide_type_of<int32_t>(), dataType);
@@ -61,7 +77,6 @@ void Utils::copyInfoToTensor(Tensor* dest, const Variable::Info* source) {
     }
     dest->buffer().dimensions                       = (int)source->dim.size();
     dest->buffer().type                             = source->type;
-    dest->buffer().host                             = (uint8_t*)source->ptr;
     TensorUtils::getDescribe(dest)->dimensionFormat = (MNN_DATA_FORMAT)Utils::convertFormat(source->order);
     TensorUtils::setLinearLayout(dest);
 }
@@ -70,7 +85,31 @@ void Utils::copyTensorToInfo(Variable::Info* shape, const Tensor* tensor) {
     shape->dim   = tensor->shape();
     shape->size  = tensor->elementSize();
     shape->order = Utils::revertFormat(TensorUtils::getDescribe(tensor)->dimensionFormat);
-    shape->ptr   = tensor->host<float>();
+}
+bool Utils::allocMemoryForHostTensor(Tensor* dest) {
+    if (nullptr != dest->buffer().host) {
+        return true;
+    }
+    if (TensorUtils::getDescribe(dest)->memoryType != Tensor::InsideDescribe::MEMORY_HOST) {
+        return false;
+    }
+    auto size = dest->size();
+    if (0 >= size) {
+        return false;
+    }
+    dest->buffer().host = (uint8_t*)MNNMemoryAllocAlign(size, MNN_MEMORY_ALIGN_DEFAULT);
+    return dest->buffer().host != nullptr;
+}
+bool Utils::releaseMemoryForHostTensor(Tensor* dest) {
+    if (nullptr == dest->buffer().host) {
+        return true;
+    }
+    if (TensorUtils::getDescribe(dest)->memoryType != Tensor::InsideDescribe::MEMORY_HOST) {
+        return false;
+    }
+    MNNMemoryFreeAlign(dest->buffer().host);
+    dest->buffer().host = nullptr;
+    return true;
 }
 
 } // namespace Express

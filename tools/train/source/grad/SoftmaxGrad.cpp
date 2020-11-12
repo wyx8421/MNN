@@ -8,25 +8,41 @@
 
 #include "SoftmaxGrad.hpp"
 #include "core/Macro.h"
+#include <MNN/expr/ExprCreator.hpp>
 using namespace std;
 using namespace MNN;
+using namespace MNN::Express;
 
 class SoftmaxGrad : public OpGrad {
 public:
     SoftmaxGrad() {
         mType = NO_LINEAR;
     }
-    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr, const std::vector<Express::VARP>& output,
+    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr,
                                               const std::vector<Express::VARP>& backwardOutput) override {
-        std::vector<Express::VARP> result(1, nullptr);
-        unique_ptr<OpT> newOp(new OpT);
-        newOp->type                = OpType_SoftmaxGrad;
-        newOp->main.type           = OpParameter_Axis;
-        newOp->main.value          = new AxisT;
-        newOp->main.AsAxis()->axis = expr->get()->main_as_Axis()->axis();
-        result[0] = Express::Variable::create(Express::Expr::create(std::move(newOp), {output[0], backwardOutput[0]}));
-        result[0]->setName(expr->name() + "_Grad");
-        return result;
+        MNN_ASSERT(expr->inputs().size() == 1 && backwardOutput.size() == 1);
+        auto input = expr->inputs()[0];
+        auto info = input->getInfo();
+        auto gradSoftmax = backwardOutput[0];
+        if (nullptr == info) {
+            return {};
+        }
+        auto axis = expr->get()->main_as_Axis()->axis();
+        if (axis < 0) {
+            axis = axis + info->dim.size();
+        }
+        auto softmax = Express::Variable::create(expr, 0);
+        auto originOrder = info->order;
+        if (originOrder == NC4HW4) {
+            gradSoftmax = _Convert(gradSoftmax, NCHW);
+            softmax = _Convert(softmax, NCHW);
+        }
+        auto sumAxis = _ReduceSum(softmax * gradSoftmax, {axis}, true);
+        auto inputGrad = (gradSoftmax - sumAxis) * softmax;
+        if (originOrder == NC4HW4) {
+            inputGrad = _Convert(inputGrad, NC4HW4);
+        }
+        return {inputGrad};
     }
 };
 static const auto gRegister = []() {

@@ -7,14 +7,11 @@
 //
 
 #include "TFExtraManager.hpp"
-#include <mutex>
 #include "MNN_generated.h"
 namespace MNN {
 namespace Express {
 std::shared_ptr<TFExtraManager> TFExtraManager::gInstance;
-static std::mutex gMutex;
 std::shared_ptr<TFExtraManager> TFExtraManager::get() {
-    std::unique_lock<std::mutex> _l(gMutex);
     if (nullptr == gInstance) {
         gInstance.reset(new TFExtraManager);
     }
@@ -31,7 +28,6 @@ std::shared_ptr<TFExtraManager::Transform> TFExtraManager::find(const std::strin
     }
     return iter->second;
 }
-
 
 static auto gRegister = []() {
     auto extra = TFExtraManager::get();
@@ -53,20 +49,23 @@ static auto gRegister = []() {
     auto modify = [extra](EXPRP expr) {
         auto op = expr->get();
         MNN_ASSERT(op->type() == OpType_Extra);
-        auto type   = op->main_as_Extra()->type()->str();
+        auto type        = op->main_as_Extra()->type()->str();
         auto transformer = extra->find(type);
         MNN_ASSERT(nullptr != transformer);
         auto newExpr = transformer->onExecute(expr);
         if (nullptr == newExpr) {
-            MNN_ERROR("Converte Tensorflow's Op %s , type = %s, failed, may be some node is not const\n", expr->name().c_str(), type.c_str());
+            MNN_ERROR("Converte Tensorflow's Op %s , type = %s, failed, may be some node is not const\n",
+                      expr->name().c_str(), type.c_str());
             return false;
         }
-        newExpr->setName(expr->name());
+        if (newExpr->name().empty()) {
+            newExpr->setName(expr->name());
+        }
         Expr::replace(expr, newExpr);
         return true;
     };
     TemplateMerge::getInstance("TFExtra").insertTemplate("TFExtraManager", judge, modify);
     return true;
 }();
-}
-}
+} // namespace Express
+} // namespace MNN

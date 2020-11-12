@@ -7,8 +7,8 @@
 //
 
 
+#include "shape/SizeComputer.hpp"
 #include "core/Macro.h"
-#include "core/SizeComputer.hpp"
 
 namespace MNN {
 class ShapeOneHot : public SizeComputer {
@@ -27,13 +27,13 @@ public:
         const int outputDimension  = indicesDimension + 1;
 
         auto param = op->main_as_OneHotParam();
-        MNN_CHECK(param->dType() == DataType_DT_FLOAT, "TODO, support other data type!");
         int axis = param->axis();
         if (axis == -1) {
             axis = outputDimension + axis;
         }
         auto output                 = outputs[0];
         output->buffer().dimensions = outputDimension;
+        output->buffer().type = inputs[2]->buffer().type;
         for (int i = 0; i < outputDimension; ++i) {
             if (i < axis) {
                 output->setLength(i, indices->length(i));
@@ -43,7 +43,7 @@ public:
                 output->setLength(i, indices->length(i - 1));
             }
         }
-        TensorUtils::getDescribe(output)->dimensionFormat = MNN_DATA_FORMAT_NHWC;
+        TensorUtils::getDescribe(output)->dimensionFormat = TensorUtils::getDescribe(inputs[0])->dimensionFormat;
         return true;
     }
 };

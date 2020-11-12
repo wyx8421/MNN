@@ -58,8 +58,9 @@ public:
      * @brief free all allocated memories.
      * @sa allocSeparate
      * @sa alloc
+     * if allRelease, clear all memory , otherwise delete freelist
      */
-    void release();
+    void release(bool allRelease = true);
 
     /**
      * @brief query total size allocated indeed.
@@ -87,9 +88,9 @@ private:
     public:
         ~Node();
         void* pointer;
-        size_t size;
         std::shared_ptr<Node> parent = nullptr;
-        int useCount                 = 0;
+        int32_t size;
+        int16_t useCount = 0;
     };
 
     typedef std::multimap<size_t, std::shared_ptr<Node>> FREELIST;
@@ -102,7 +103,7 @@ private:
     size_t mTotalSize   = 0;
     const size_t mAlign = 0;
 
-    FREELIST* mCurrenetFreeList = nullptr;
+    FREELIST* mCurrentFreeList = nullptr;
     std::vector<std::shared_ptr<FREELIST>> mGroups;
 };
 } // namespace MNN

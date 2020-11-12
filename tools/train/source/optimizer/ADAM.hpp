@@ -20,13 +20,16 @@ namespace Train {
 
 class MNN_PUBLIC ADAM : public SGD {
 public:
-    void append(const std::set<Express::VARP>& parameters);
+    ADAM(std::shared_ptr<Express::Module> module);
+    virtual ~ ADAM() = default;
 
-    void remove(const std::set<Express::VARP>& parameters);
+    virtual Express::VARP onComputeUpdateValue(Express::VARP param, Express::VARP grad) override;
 
-    Express::VARP computeUpdateValue(Express::VARP param, Express::VARP grad) override;
+    float getMomentum2();
 
     void setMomentum2(float momentum2);
+
+    float getEps();
 
     void setEps(float eps);
 

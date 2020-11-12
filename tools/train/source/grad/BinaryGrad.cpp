@@ -13,7 +13,7 @@ using namespace MNN;
 using namespace MNN::Express;
 class EltwiseGrad : public OpGrad {
 public:
-    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr, const std::vector<Express::VARP>& output,
+    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr,
                                               const std::vector<Express::VARP>& backwardOutput) override {
         std::vector<VARP> res;
         auto inputs = expr->inputs();
@@ -55,7 +55,7 @@ public:
             }
             case MNN::EltwiseType_MAXIMUM: {
                 for (int i = 0; i < inputs.size(); ++i) {
-                    auto mask = _Sign(inputs[i] - output[i]) + _Const(1.0f, {}, NCHW);
+                    auto mask = _Sign(inputs[i] - Variable::create(expr, i)) + _Const(1.0f, {}, NCHW);
                     res[i]    = mask * outputDiff;
                 }
                 break;
@@ -68,13 +68,17 @@ public:
 };
 class BinaryGrad : public OpGrad {
 public:
-    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr, const std::vector<Express::VARP>& output,
+    virtual std::vector<Express::VARP> onGrad(Express::EXPRP expr,
                                               const std::vector<Express::VARP>& backwardOutput) override {
         std::vector<VARP> res;
         auto inputs = expr->inputs();
         res.resize(inputs.size());
         auto op         = expr->get();
         auto outputDiff = backwardOutput[0];
+        std::vector<VARP> output(expr->outputSize());
+        for (int i = 0; i < expr->outputSize(); ++i) {
+            output[i] = Variable::create(expr, i);
+        }
         switch (op->main_as_BinaryOp()->opType()) {
             case BinaryOpOperation_ADD: {
                 res[0] = outputDiff;
@@ -111,6 +115,12 @@ public:
                 res[1] = _Negative(_Multiply(outputDiff, _Divide(output[0], inputs[1])));
                 break;
             }
+            case BinaryOpOperation_POW: {
+                // d (pow(x, y)) = dv * pow(x, y) / x * y , dv * pow(x, y) * ln(y)
+                res[0] = outputDiff * output[0] * _Divide(inputs[1], inputs[0]);
+                res[1] = outputDiff * output[0] * _Log(inputs[1]);
+                break;
+            }
             default:
                 return res;
         }
@@ -145,7 +155,7 @@ public:
                     reduceDims.clear();
                     auto diff = (int)backShape->dim.size() - (int)inputShape->dim.size();
                     for (int j = 0; j < inputShape->dim.size(); j++) {
-                        if (backShape->dim[j+diff] > 1 && inputShape->dim[j] == 1) {
+                        if (backShape->dim[j + diff] > 1 && inputShape->dim[j] == 1) {
                             reduceDims.emplace_back(j);
                         }
                     }

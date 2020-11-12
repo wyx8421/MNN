@@ -1,3 +1,3 @@
-set -e
-schema/generate.sh
-project/ios/buildiOS.sh
+./schema/generate.sh
+cd project/ios
+./buildiOS.sh

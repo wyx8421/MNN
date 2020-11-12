@@ -10,23 +10,21 @@
 #define VulkanBinary_hpp
 
 #include <stdio.h>
-#include "backend/vulkan/execution/VulkanBasicExecution.hpp"
+#include "VulkanBasicExecution.hpp"
 
 namespace MNN {
 class VulkanBinary : public VulkanBasicExecution {
 public:
-    VulkanBinary(const Op*, Backend* bn);
+    VulkanBinary(const std::string& shaderName, Backend* bn, bool image);
     virtual ~VulkanBinary();
 
     ErrorCode onEncode(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs,
                        const VulkanCommandPool::Buffer* cmdBuffer) override;
 
 private:
-    std::shared_ptr<VulkanBuffer> mConstBuffer;
+    std::vector<std::shared_ptr<VulkanBuffer>> mConstBuffer;
     const VulkanPipeline* mBinaryPipeline;
-    std::shared_ptr<VulkanPipeline::DescriptorSet> mDescriptorSet;
-    const VulkanBackend* mVkBackend;
-    int32_t mType;
+    std::vector<std::shared_ptr<VulkanPipeline::DescriptorSet>> mDescriptorSet;
 };
 } // namespace MNN
 

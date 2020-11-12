@@ -15,7 +15,7 @@ class MergeBNToConvolution : public MergeToConvolution {
 public:
     bool merge2Convolution(const MNN::OpT* inplaceOp, MNN::OpT* convolutionOp) const {
         const auto& convCommon = convolutionOp->main.AsConvolution2D()->common;
-        if (convCommon->relu || convCommon->relu6) {
+        if (convCommon->relu || convCommon->relu6 || convolutionOp->inputIndexes.size() > 1) {
             return false;
         }
 
@@ -30,9 +30,10 @@ public:
             const float* meanDataPtr = l->meanData.data();
             const float* varDataPtr  = l->varData.data();
             const float* biasDataPtr = l->biasData.data();
+            const float eps          = l->epsilon;
 
             for (int i = 0; i < l->channels; i++) {
-                float sqrt_var = sqrt(varDataPtr[i]);
+                float sqrt_var = sqrt(varDataPtr[i] + eps);
                 bias[i]        = biasDataPtr[i] - slopePtr[i] * meanDataPtr[i] / sqrt_var;
                 alpha[i]       = slopePtr[i] / sqrt_var;
             }
@@ -51,7 +52,7 @@ public:
                 int weightPartSize = conv2D->weight.size() / outputCount;
                 if (convolutionOp->type == OpType_Deconvolution) {
                     int inputCount =
-                            conv2D->weight.size() / outputCount / conv2D->common->kernelX / conv2D->common->kernelY;
+                        conv2D->weight.size() / outputCount / conv2D->common->kernelX / conv2D->common->kernelY;
                     for (int i = 0; i < inputCount; ++i) {
                         auto dstPos = i * outputCount * conv2D->common->kernelY * conv2D->common->kernelX;
                         for (int j = 0; j < outputCount; ++j) {
@@ -93,9 +94,10 @@ public:
             const float* meanDataPtr = l->meanData.data();
             const float* varDataPtr  = l->varData.data();
             const float* biasDataPtr = l->biasData.data();
+            const float eps          = l->epsilon;
 
             for (int i = 0; i < l->channels; i++) {
-                float sqrt_var = sqrt(varDataPtr[i]);
+                float sqrt_var = sqrt(varDataPtr[i] + eps);
                 bias[i]        = biasDataPtr[i] - slopePtr[i] * meanDataPtr[i] / sqrt_var;
                 alpha[i]       = slopePtr[i] / sqrt_var;
             }

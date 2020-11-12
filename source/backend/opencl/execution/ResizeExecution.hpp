@@ -14,6 +14,7 @@
 #include <vector>
 #include "core/Execution.hpp"
 #include "backend/opencl/core/OpenCLBackend.hpp"
+#include "backend/opencl/core/OpenCLRunningUtils.hpp"
 
 namespace MNN {
 namespace OpenCL {
@@ -31,7 +32,8 @@ private:
     float mYScale;
     cl::Kernel mKernel;
     uint32_t mMaxWorkGroupSize;
-    bool mAreadySetArg;
+    std::vector<uint32_t> mGWS{1, 1, 1, 1};
+    std::vector<uint32_t> mLWS{1, 1, 1, 1};
     cl::Kernel mImageToBufferKernel;
     cl::Kernel mBufferToImageKernel;
     OpenCLBackend *mOpenCLBackend;

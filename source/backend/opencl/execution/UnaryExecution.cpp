@@ -51,8 +51,9 @@ ErrorCode UnaryExecution::onResize(const std::vector<Tensor*>& inputs, const std
     mKernel.setArg(idx++, openCLImage(input));
     mKernel.setArg(idx++, openCLImage(output));
 
+    std::string name = "unary";
     const std::vector<uint32_t> lws =
-        localWS3DDefault(mGlobalWorkSize, mMaxWorkGroupSize, openCLBackend->getOpenCLRuntime());
+        localWS3DDefault(mGlobalWorkSize, mMaxWorkGroupSize, openCLBackend->getOpenCLRuntime(), name, mKernel);
     mLocalSize = lws;
     return NO_ERROR;
 }
@@ -61,8 +62,19 @@ ErrorCode UnaryExecution::onExecute(const std::vector<Tensor*>& inputs, const st
 #ifdef LOG_VERBOSE
     MNN_PRINT("start UnaryExecution onExecute...");
 #endif
-    auto openCLBackend = static_cast<OpenCLBackend*>(backend());
-    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalSize, openCLBackend->getOpenCLRuntime());
+    auto mOpenCLBackend = static_cast<OpenCLBackend*>(backend());
+    
+#ifdef ENABLE_OPENCL_TIME_PROFILER
+    cl::Event event;
+    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalSize,
+                       mOpenCLBackend->getOpenCLRuntime(), &event);
+    
+    int costTime = (int)mOpenCLBackend->getOpenCLRuntime()->getCostTime(&event);
+    MNN_PRINT("kernel cost:%d    us Unary\n",costTime);
+#else
+    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalSize,
+                       mOpenCLBackend->getOpenCLRuntime());
+#endif
 
 #ifdef LOG_VERBOSE
     MNN_PRINT("end UnaryExecution onExecute...");
@@ -76,20 +88,56 @@ public:
                                 const MNN::Op* op, Backend* backend) const override {
         if (op->type() == OpType_UnaryOp) {
             switch (op->main_as_UnaryOp()->opType()) {
+                case UnaryOpOperation_SQUARE:
+                    return new UnaryExecution("in*in", backend);
+                case UnaryOpOperation_ERF:
+                    return new UnaryExecution("erf(convert_float4(in))", backend);
+                case UnaryOpOperation_ERFC:
+                    return new UnaryExecution("erfc(convert_float4(in))", backend);
+                case UnaryOpOperation_SQRT:
+                    return new UnaryExecution("sqrt(convert_float4(in))", backend);
                 case UnaryOpOperation_RSQRT:
-                    return new UnaryExecution("rsqrt(in)", backend);
+                    return new UnaryExecution("rsqrt(convert_float4(in))", backend);
                 case UnaryOpOperation_ABS:
-                    return new UnaryExecution("fabs(in)", backend);
+                    return new UnaryExecution("fabs(convert_float4(in))", backend);
+                case UnaryOpOperation_SIN:
+                    return new UnaryExecution("sin(convert_float4(in))", backend);
+                case UnaryOpOperation_COS:
+                    return new UnaryExecution("cos(convert_float4(in))", backend);
+                case UnaryOpOperation_SIGN:
+                    return new UnaryExecution("sign(convert_float4(in))", backend);
+                case UnaryOpOperation_EXP:
+                    return new UnaryExecution("exp(convert_float4(in))", backend);
+                case UnaryOpOperation_NEG:
+                    return new UnaryExecution("-(in)", backend);
+                case UnaryOpOperation_TAN:
+                    return new UnaryExecution("tan(convert_float4(in))", backend);
+                case UnaryOpOperation_CEIL:
+                    return new UnaryExecution("ceil(convert_float4(in))", backend);
+                case UnaryOpOperation_LOG1P:
+                    return new UnaryExecution("log1p(convert_float4(in))", backend);
+                case UnaryOpOperation_FLOOR:
+                    return new UnaryExecution("floor(convert_float4(in))", backend);
+                case UnaryOpOperation_ROUND:
+                    return new UnaryExecution("round(convert_float4(in))", backend);
+                case UnaryOpOperation_SIGMOID:
+                    return new UnaryExecution("native_recip((float4)1+native_exp(convert_float4(-in)))", backend);
+                case UnaryOpOperation_TANH:
+                    return new UnaryExecution("tanh(convert_float4(in))", backend);
+                case UnaryOpOperation_RECIPROCAL:
+                    return new UnaryExecution("native_recip(convert_float4(in))", backend);
+                case UnaryOpOperation_LOG:
+                    return new UnaryExecution("native_log(convert_float4(in+(FLOAT4)((FLOAT)0.0000001)))", backend);
                 default:
                     break;
             }
             return nullptr;
         }
         if (op->type() == OpType_Sigmoid) {
-            return new UnaryExecution("native_recip((float4)1+native_exp(-in))", backend);
+            return new UnaryExecution("native_recip((float4)(1)+native_exp(convert_float4(-in)))", backend);
         }
         if (op->type() == OpType_TanH) {
-            return new UnaryExecution("tanh(in)", backend);
+            return new UnaryExecution("tanh(convert_float4(in))", backend);
         }
         return nullptr;
     }

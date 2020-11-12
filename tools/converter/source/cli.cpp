@@ -14,6 +14,7 @@
 #else
 #include <unistd.h>
 #endif
+#include <MNN/VCS.h>
 #include "config.hpp"
 #include "logkit.h"
 
@@ -43,7 +44,14 @@ cxxopts::Options Cli::initializeMNNConvertArgs(modelConfig &modelPath, int argc,
         "Do NOT save big size data, such as Conv's weight,BN's gamma,beta,mean and variance etc. Only used to test "
         "the cost of the model")("bizCode", "MNN Model Flag, ex: MNN", cxxopts::value<std::string>())(
         "debug", "Enable debugging mode.")(
-        "forTraining", "whether or not to save training ops BN and Dropout, default: false", cxxopts::value<bool>());
+        "forTraining", "whether or not to save training ops BN and Dropout, default: false", cxxopts::value<bool>())(
+        "weightQuantBits", "save conv/matmul/LSTM float weights to int8 type, only optimize for model size, 2-8 bits, default: 0, which means no weight quant", cxxopts::value<int>())(
+        "compressionParamsFile",
+            "The path of the compression parameters that stores activation, "
+            "weight scales and zero points for quantization or information "
+            "for sparsity.", cxxopts::value<std::string>())(
+        "saveStaticModel", "save static model with fix shape, default: false", cxxopts::value<bool>())(
+        "inputConfigFile", "set input config file for static model, ex: ~/config.txt", cxxopts::value<std::string>());
 
     auto result = options.parse(argc, argv);
 
@@ -53,7 +61,7 @@ cxxopts::Options Cli::initializeMNNConvertArgs(modelConfig &modelPath, int argc,
     }
 
     if (result.count("version")) {
-        std::cout << "\tVersion:" << ProjectConfig::version << std::endl;
+        std::cout << ProjectConfig::version << std::endl;
         exit(EXIT_SUCCESS);
     }
 
@@ -130,6 +138,12 @@ cxxopts::Options Cli::initializeMNNConvertArgs(modelConfig &modelPath, int argc,
         exit(EXIT_FAILURE);
     }
 
+    // input config file path
+    if (result.count("inputConfigFile")) {
+        const std::string inputConfigFile = result["inputConfigFile"].as<std::string>();
+        modelPath.inputConfigFile         = inputConfigFile;
+    }
+
     // benchmarkModel
     if (result.count("benchmarkModel")) {
         modelPath.benchmarkModel = true;
@@ -141,6 +155,18 @@ cxxopts::Options Cli::initializeMNNConvertArgs(modelConfig &modelPath, int argc,
     }
     if (result.count("forTraining")) {
         modelPath.forTraining = true;
+    }
+    if (result.count("weightQuantBits")) {
+        modelPath.weightQuantBits = result["weightQuantBits"].as<int>();
+    }
+    if (result.count("saveStaticModel")) {
+        modelPath.saveStaticModel = true;
+    }
+
+    // Int8 calibration table path.
+    if (result.count("compressionParamsFile")) {
+        modelPath.compressionParamsFile =
+            result["compressionParamsFile"].as<std::string>();
     }
 
     return options;

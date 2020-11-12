@@ -8,9 +8,10 @@
 
 #include "backend/cpu/compute/ConvOpt.h"
 #include <algorithm>
+#include <string.h>
 #include "core/Macro.h"
-#include "math/Vec4.hpp"
-using namespace MNN::Math;
+#include "math/Vec.hpp"
+using Vec4 = MNN::Math::Vec<float, 4>;
 #ifndef MNN_USE_NEON
 #ifndef MNN_USE_SSE
 
@@ -36,63 +37,6 @@ void MNNMatrixAdd(float* C, const float* A, const float* B, size_t widthC4, size
         for (int x = 0; x < widthC4; ++x) {
             for (int j = 0; j < 4; ++j) {
                 c[4 * x + j] = a[4 * x + j] + b[4 * x + j];
-            }
-        }
-    }
-}
-
-void MNNConvSlideWindowBorder(float* dst, const float* src, const float* weight, size_t src_depth_quad,
-                              size_t src_depth_step, size_t fw, size_t fh, size_t weight_y_step, size_t weight_z_step,
-                              size_t dilateX_step, size_t dilateY_step, float* alpha) {
-    int sz, fx, fy;
-    for (int i = 0; i < 4; ++i) {
-        dst[i] = 0.0f;
-    }
-    for (sz = 0; sz < src_depth_quad; ++sz) {
-        const float* src_z    = src + sz * src_depth_step;
-        const float* weight_z = weight + sz * weight_z_step;
-        for (fy = 0; fy < fh; ++fy) {
-            const float* src_y    = src_z + fy * dilateY_step;
-            const float* weight_y = weight_z + fy * weight_y_step;
-            for (fx = 0; fx < fw; ++fx) {
-                const float* weight_x = weight_y + 16 * fx;
-                const float* src_x    = src_y + fx * dilateX_step;
-                for (int i = 0; i < 4; ++i) {
-                    for (int j = 0; j < 4; ++j) {
-                        dst[j] += src_x[i] * weight_x[4 * i + j];
-                    }
-                }
-            }
-        }
-    }
-}
-
-void MNNConvSlideWindowMiddle(float* dst, const float* src, const float* weight, size_t width, size_t src_w_setup,
-                              size_t src_depth_quad, size_t src_depth_step, size_t fw, size_t fh, size_t dilateX_step,
-                              size_t dilateY_step, float* alpha) {
-    int dx, sz, fx, fy;
-    for (dx = 0; dx < width; ++dx) {
-        float* dst_x        = dst + dx * 4;
-        dst_x[0]            = 0.0f;
-        dst_x[1]            = 0.0f;
-        dst_x[2]            = 0.0f;
-        dst_x[3]            = 0.0f;
-        const float* src_dx = src + src_w_setup * dx;
-        for (sz = 0; sz < src_depth_quad; ++sz) {
-            const float* src_z    = src_dx + sz * src_depth_step;
-            const float* weight_z = weight + sz * fh * fw * 16;
-            for (fy = 0; fy < fh; ++fy) {
-                const float* src_y    = src_z + fy * dilateY_step;
-                const float* weight_y = weight_z + fy * fw * 16;
-                for (fx = 0; fx < fw; ++fx) {
-                    const float* weight_x = weight_y + 16 * fx;
-                    const float* src_x    = src_y + fx * dilateX_step;
-                    for (int i = 0; i < 4; ++i) {
-                        for (int j = 0; j < 4; ++j) {
-                            dst_x[j] += src_x[i] * weight_x[4 * i + j];
-                        }
-                    }
-                }
             }
         }
     }
@@ -124,24 +68,11 @@ void MNNGemmFloatCommon_4(float* dst, const float* src, const float* weight, siz
     }
 }
 
-#endif
-
-void MNNConvRunForUnitDepthWise(float* dst, const float* src, const float* weight, size_t fw, size_t fh,
-                                size_t weight_y_step, size_t dilateX_step, size_t dilateY_step) {
-    int fx, fy;
-    Vec4 dstValue(0.0f);
-    const float* src_z    = src;
-    const float* weight_z = weight;
-    for (fy = 0; fy < fh; ++fy) {
-        const float* src_y    = src_z + fy * dilateY_step;
-        const float* weight_y = weight_z + fy * weight_y_step;
-        for (fx = 0; fx < fw; ++fx) {
-            const float* weight_x = weight_y + 4 * fx;
-            const float* src_x    = src_y + fx * dilateX_step;
-            dstValue = dstValue + Vec4::load(src_x) * Vec4::load(weight_x);
-        }
-    }
-    Vec4::save(dst, dstValue);
+void MNNGemmFloatUnit_4(float* dstOrigin, const float* src, const float* weight, size_t src_depth_quad, size_t dst_step,
+                        size_t dst_depth_quad, size_t weight_depth_offset) {
+    auto CONVOLUTION_TILED_NUMBER = MNNGetConvolutionTileNumber();
+    MNNGemmFloatCommon_4(dstOrigin, src, weight, src_depth_quad, dst_step, dst_depth_quad, CONVOLUTION_TILED_NUMBER,
+                         weight_depth_offset);
 }
 
 void MNNConvRunForLineDepthwise(float* dst, const float* src, const float* weight, size_t width, size_t src_w_setup,
@@ -168,6 +99,25 @@ void MNNConvRunForLineDepthwise(float* dst, const float* src, const float* weigh
             Vec4::save(dst_x, dstValue);
         }
     }
+}
+#endif
+
+void MNNConvRunForUnitDepthWise(float* dst, const float* src, const float* weight, size_t fw, size_t fh,
+                                size_t weight_y_step, size_t dilateX_step, size_t dilateY_step) {
+    int fx, fy;
+    Vec4 dstValue(0.0f);
+    const float* src_z    = src;
+    const float* weight_z = weight;
+    for (fy = 0; fy < fh; ++fy) {
+        const float* src_y    = src_z + fy * dilateY_step;
+        const float* weight_y = weight_z + fy * weight_y_step;
+        for (fx = 0; fx < fw; ++fx) {
+            const float* weight_x = weight_y + 4 * fx;
+            const float* src_x    = src_y + fx * dilateX_step;
+            dstValue = dstValue + Vec4::load(src_x) * Vec4::load(weight_x);
+        }
+    }
+    Vec4::save(dst, dstValue);
 }
 
 void MNNConvRunForUnitint8_t(float* dst, const int8_t* src, const int8_t* weight, size_t src_depth_quad,
@@ -233,11 +183,6 @@ void MNNConvRunForLineint8_t(float* dst, const int8_t* src, const int8_t* weight
     }
 }
 
-void MNNGemmFloatUnit_4(float* dstOrigin, const float* src, const float* weight, size_t src_depth_quad, size_t dst_step,
-                        size_t dst_depth_quad, size_t weight_depth_offset) {
-    MNNGemmFloatCommon_4(dstOrigin, src, weight, src_depth_quad, dst_step, dst_depth_quad, CONVOLUTION_TILED_NUMBER,
-                         weight_depth_offset);
-}
 void MNNGemmFloatOne_4(float* dstOrigin, const float* src, const float* weight, size_t src_depth_quad, size_t dst_step,
                        size_t dst_depth_quad, size_t weight_depth_offset) {
     MNNGemmFloatCommon_4(dstOrigin, src, weight, src_depth_quad, dst_step, dst_depth_quad, 1, weight_depth_offset);
@@ -266,7 +211,9 @@ void MNNMatrixProd(float* C, const float* A, const float* B, size_t widthC4, siz
         auto b = B + bStride * y;
         auto c = C + cStride * y;
         for (int x = 0; x < widthC4; ++x) {
-            Vec4::save(c + 4 * x, Vec4::load(a + 4 * x) * Vec4::load(b + 4 * x));
+            auto aV = Vec4::load(a + 4 * x);
+            auto bV = Vec4::load(b + 4 * x);
+            Vec4::save(c + 4 * x, aV * bV);
         }
     }
 }
@@ -378,3 +325,8 @@ void MNNMatrixMaxCommon(float* C, const float* A, const float* B, size_t width, 
         }
     }
 }
+#ifndef MNN_USE_SSE
+int MNNGetConvolutionTileNumber() {
+    return 8;
+}
+#endif

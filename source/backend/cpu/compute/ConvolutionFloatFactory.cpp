@@ -10,7 +10,6 @@
 #include "backend/cpu/CPUConvolutionDepthwise.hpp"
 #include "backend/cpu/compute/ConvOpt.h"
 #include "backend/cpu/compute/Convolution1x1Strassen.hpp"
-#include "backend/cpu/compute/Convolution3x3.hpp"
 #include "backend/cpu/compute/ConvolutionGroup.hpp"
 #include "backend/cpu/compute/ConvolutionIntFactory.hpp"
 #include "backend/cpu/compute/ConvolutionTiledExecutor.hpp"
@@ -37,12 +36,6 @@ static Execution* _createUnit(const Tensor* input, const Tensor* output, Backend
     if (unit <= 1) {
         return new ConvolutionTiledExecutor(common, backend, originWeight, originWeightSize, bias, biasSize);
     }
-#if defined(MNN_BUILD_FOR_ANDROID) || defined(__APPLE__)
-    // MNN_PRINT("ic=%d, channel=%d, kx=%d, unit=%d\n", input->channel(), output->channel(), common->kernelX(), unit);
-    if (common->kernelY() == 3 && common->kernelX() == 3 && unit <= 4) {
-        return new Convolution3x3(common, backend, originWeight, originWeightSize, bias, biasSize);
-    }
-#endif
     return new ConvolutionWinograd(common, input, output, backend, originWeight, originWeightSize, bias, biasSize,
                                    unit);
 }
@@ -56,9 +49,9 @@ Execution* ConvolutionFloatFactory::create(const std::vector<Tensor*>& inputs, c
     }
     const float* originWeight = nullptr;
     size_t originWeightSize   = 0;
-    std::shared_ptr<ConvolutionIntFactory::Int8Common> quanCommon;
+    std::shared_ptr<ConvolutionCommon::Int8Common> quanCommon;
     if (nullptr != conv2d->quanParameter()) {
-        quanCommon = ConvolutionIntFactory::load(conv2d->quanParameter());
+        quanCommon = ConvolutionCommon::load(conv2d->quanParameter());
         if (nullptr == quanCommon) {
             MNN_ERROR("Memory not Enough, can't extract IDST Convolution: %s \n", op->name()->c_str());
             return nullptr;

@@ -9,6 +9,7 @@ IS_WINDOWS = (platform.system() == 'Windows')
 IS_DARWIN = (platform.system() == 'Darwin')
 IS_LINUX = (platform.system() == 'Linux')
 if __name__ == '__main__':
+    os.system("pip install -U numpy")
     if os.path.exists('build'):
         shutil.rmtree('build')
     if IS_DARWIN:
@@ -16,4 +17,6 @@ if __name__ == '__main__':
     if IS_LINUX:
         os.system('python setup.py bdist_wheel --plat-name=manylinux1_x86_64')
     if IS_WINDOWS:
+        os.putenv('DISTUTILS_USE_SDK', '1')
+        os.putenv('MSSdk', '1')
         os.system('python setup.py bdist_wheel')

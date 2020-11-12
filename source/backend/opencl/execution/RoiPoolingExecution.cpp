@@ -34,76 +34,6 @@ RoiPooling::RoiPooling(const std::vector<Tensor *> &inputs, const MNN::Op *op, B
 }
 
 ErrorCode RoiPooling::onResize(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) {
-    mAreadySetArg = false;
-    return NO_ERROR;
-}
-
-std::vector<uint32_t> RoiPooling::roiPoolingLocalWS(const std::vector<uint32_t> &gws, const uint32_t maxWorkGroupSize) {
-    std::vector<uint32_t> lws(4, 0);
-    GpuType gpuType             = mOpenCLBackend->getOpenCLRuntime()->getGpuType();
-    uint32_t deviceComputeUnits = mOpenCLBackend->getOpenCLRuntime()->deviceComputeUnits();
-    if (gpuType == GpuType::ADRENO) {
-        int coreNum   = deviceComputeUnits;
-        int remain    = gws[0] % coreNum;
-        int groupSize = gws[0] / coreNum;
-        if (remain == 0) {
-            lws[0] = groupSize;
-        } else {
-            while (groupSize) {
-                int remain = gws[0] % groupSize;
-                if (remain == 0 && groupSize <= maxWorkGroupSize) {
-                    lws[0] = groupSize;
-                    break;
-                }
-                groupSize--;
-            }
-        }
-        lws[0] = std::max<uint32_t>(std::min<uint32_t>(maxWorkGroupSize, lws[0]), 1);
-
-        remain    = gws[1] % coreNum;
-        groupSize = gws[1] / coreNum;
-        if (remain == 0) {
-            lws[1] = groupSize;
-        } else {
-            while (groupSize) {
-                int remain = gws[1] % groupSize;
-                if (remain == 0) {
-                    lws[1] = groupSize;
-                    break;
-                }
-                groupSize--;
-            }
-        }
-        lws[1] = std::max<uint32_t>(std::min<uint32_t>(maxWorkGroupSize / lws[0], lws[1]), 1);
-
-        remain    = gws[2] % coreNum;
-        groupSize = gws[2] / coreNum;
-        if (remain == 0) {
-            lws[2] = groupSize;
-        } else {
-            while (groupSize) {
-                int remain = gws[2] % groupSize;
-                if (remain == 0) {
-                    lws[2] = groupSize;
-                    break;
-                }
-                groupSize--;
-            }
-        }
-
-        lws[2] = std::max<uint32_t>(std::min<uint32_t>(maxWorkGroupSize / (lws[0] * lws[1]), lws[2]), 1);
-    } else {
-        lws[0] = deviceComputeUnits * 2;
-        lws[1] = 4;
-        lws[2] = 1;
-    }
-    return lws;
-}
-
-ErrorCode RoiPooling::onExecute(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) {
-#ifdef LOG_VERBOSE
-    MNN_PRINT("start RoiPooling onExecute !\n");
-#endif
     Tensor *input  = inputs[0];
     Tensor *output = outputs[0];
     Tensor *roi    = inputs[1];
@@ -124,37 +54,74 @@ ErrorCode RoiPooling::onExecute(const std::vector<Tensor *> &inputs, const std::
     const int inputWidth    = inputShape.at(2);
     const int inputChannels = inputShape.at(3);
 
-    std::vector<uint32_t> gws;
-
     int channelBlocks = (channels + 3) / 4;
 
-    gws = {
-        static_cast<uint32_t>(channelBlocks),
-        static_cast<uint32_t>(outputWidth),
-        static_cast<uint32_t>(batch * outputHeight),
-    };
+    mGWS = {static_cast<uint32_t>(channelBlocks),
+            static_cast<uint32_t>(outputWidth),
+            static_cast<uint32_t>(batch * outputHeight),
+            };
 
-    if (!mAreadySetArg) {
-        uint32_t idx = 0;
+    uint32_t idx = 0;
 
-        mKernel.setArg(idx++, gws[0]);
-        mKernel.setArg(idx++, gws[1]);
-        mKernel.setArg(idx++, gws[2]);
+    mKernel.setArg(idx++, mGWS[0]);
+    mKernel.setArg(idx++, mGWS[1]);
+    mKernel.setArg(idx++, mGWS[2]);
 
-        mKernel.setArg(idx++, openCLImage(input));
-        mKernel.setArg(idx++, openCLImage(roi));
-        mKernel.setArg(idx++, static_cast<int32_t>(inputHeight));
-        mKernel.setArg(idx++, static_cast<int32_t>(inputWidth));
-        mKernel.setArg(idx++, static_cast<int32_t>(channels));
-        mKernel.setArg(idx++, static_cast<int32_t>(roiShape.at(1)));
-        mKernel.setArg(idx++, static_cast<float>(mSpatialScale));
-        mKernel.setArg(idx++, openCLImage(output));
-        mAreadySetArg = true;
+    mKernel.setArg(idx++, openCLImage(input));
+    mKernel.setArg(idx++, openCLImage(roi));
+    mKernel.setArg(idx++, static_cast<int32_t>(inputHeight));
+    mKernel.setArg(idx++, static_cast<int32_t>(inputWidth));
+    mKernel.setArg(idx++, static_cast<int32_t>(channels));
+    mKernel.setArg(idx++, static_cast<int32_t>(roiShape.at(1)));
+    mKernel.setArg(idx++, static_cast<float>(mSpatialScale));
+    mKernel.setArg(idx++, openCLImage(output));
+    
+    mLWS = roiPoolingLocalWS(mGWS, mMaxWorkGroupSize);
+
+    return NO_ERROR;
+}
+
+std::vector<uint32_t> RoiPooling::roiPoolingLocalWS(const std::vector<uint32_t> &gws, const uint32_t maxWorkGroupSize) {
+    std::vector<uint32_t> lws(4, 0);
+    GpuType gpuType             = mOpenCLBackend->getOpenCLRuntime()->getGpuType();
+    uint32_t deviceComputeUnits = mOpenCLBackend->getOpenCLRuntime()->deviceComputeUnits();
+    int coreNum = deviceComputeUnits;
+    for (int i = 0, totalSizeNow = 1; i < gws.size(); ++i) {
+        int remain = gws[i] % coreNum, groupSize = gws[i] / coreNum;
+        if (remain == 0) {
+            lws[i] = groupSize;
+        } else {
+            while(groupSize) {
+                int remain = gws[i] % groupSize;
+                if (remain == 0 && (i > 0 || groupSize <= maxWorkGroupSize)) {
+                    lws[i] = groupSize;
+                    break;
+                }
+                --groupSize;
+            }
+        }
+        lws[i] = std::max<uint32_t>(std::min<uint32_t>(lws[i], maxWorkGroupSize / totalSizeNow), 1);
+        totalSizeNow *= lws[i];
     }
+    return lws;
+}
 
-    const std::vector<uint32_t> lws = roiPoolingLocalWS(gws, mMaxWorkGroupSize);
+ErrorCode RoiPooling::onExecute(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) {
+#ifdef LOG_VERBOSE
+    MNN_PRINT("start RoiPooling onExecute !\n");
+#endif
 
-    run3DKernelDefault(mKernel, gws, lws, mOpenCLBackend->getOpenCLRuntime());
+#ifdef ENABLE_OPENCL_TIME_PROFILER
+    cl::Event event;
+    run3DKernelDefault(mKernel, mGWS, mLWS,
+                       mOpenCLBackend->getOpenCLRuntime(), &event);
+    
+    int costTime = (int)mOpenCLBackend->getOpenCLRuntime()->getCostTime(&event);
+    MNN_PRINT("kernel cost:%d    us RoiPooling\n",costTime);
+#else
+    run3DKernelDefault(mKernel, mGWS, mLWS, mOpenCLBackend->getOpenCLRuntime());
+#endif
+    
 #ifdef LOG_VERBOSE
     MNN_PRINT("end RoiPooling onExecute !\n");
 #endif

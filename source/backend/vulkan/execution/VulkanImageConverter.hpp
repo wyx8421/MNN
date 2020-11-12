@@ -16,28 +16,6 @@
 #include "backend/vulkan/component/VulkanPipeline.hpp"
 namespace MNN {
 class VulkanBackend;
-class VulkanTensorConvert {
-public:
-    VulkanTensorConvert() = delete;
-    VulkanTensorConvert(const VulkanBackend* bn);
-    virtual ~VulkanTensorConvert();
-
-    bool encodeTensorConvert(VkBuffer source, VkBuffer dest, const Tensor* shape, MNN_DATA_FORMAT sourceFormat,
-                             MNN_DATA_FORMAT destFormat, VkDeviceSize srcOffset, VkDeviceSize destOffset,
-                             VkDeviceSize srcSize, VkDeviceSize dstSize, const VulkanCommandPool::Buffer* cmdBuffer);
-    struct Uniforms {
-        int width;
-        int height;
-        int channel;
-        int batch;
-    };
-
-private:
-    std::shared_ptr<VulkanPipeline::DescriptorSet> mTensorConvertDescriptorSet;
-    std::shared_ptr<VulkanBuffer> mTensorConvertUniformBuffer;
-    const VulkanPipeline* mTensorConvertPipeline;
-    const VulkanBackend* mVulkanBackend;
-};
 class VulkanImageConverter : public NonCopyable {
 public:
     VulkanImageConverter(const VulkanBackend* bn);
@@ -57,20 +35,19 @@ private:
                                    VkImageLayout layout);
     enum TYPE {
         IMAGE_TO_BUFFER,
-        BUFFER_TO_BUFFER,
         BUFFER_TO_IMAGE,
     };
 
     void _setUpPipeline(MNN_DATA_FORMAT source, MNN_DATA_FORMAT dest, TYPE type, halide_type_t dataType);
     const VulkanBackend* mBackend;
-    std::shared_ptr<VulkanPipeline::DescriptorSet> mSet;
+    std::vector<std::shared_ptr<VulkanPipeline::DescriptorSet>> mSet;
+    std::vector<std::shared_ptr<VulkanBuffer>> mOffset;
     std::shared_ptr<VulkanBuffer> mConst;
     const VulkanPipeline* mPipeline = nullptr;
     const VulkanSampler* mSampler   = nullptr;
     MNN_DATA_FORMAT mCurrentSource;
     MNN_DATA_FORMAT mCurrentDest;
 
-    VulkanTensorConvert mBufferConverter;
     TYPE mConvertImage;
 };
 } // namespace MNN

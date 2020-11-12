@@ -4,7 +4,6 @@
 #ifndef FLATBUFFERS_GENERATED_TENSORFLOWOP_MNN_H_
 #define FLATBUFFERS_GENERATED_TENSORFLOWOP_MNN_H_
 
-#include "flatbuffers/flatbuffers.h"
 
 #include "Tensor_generated.h"
 #include "Type_generated.h"
@@ -113,6 +112,12 @@ struct OneHotParamT;
 struct PadParam;
 struct PadParamT;
 
+struct LayerNorm;
+struct LayerNormT;
+
+struct RandomUniform;
+struct RandomUniformT;
+
 inline const flatbuffers::TypeTable *BinaryOpTypeTable();
 
 inline const flatbuffers::TypeTable *PackParamTypeTable();
@@ -180,6 +185,10 @@ inline const flatbuffers::TypeTable *DetectionPostProcessParamTypeTable();
 inline const flatbuffers::TypeTable *OneHotParamTypeTable();
 
 inline const flatbuffers::TypeTable *PadParamTypeTable();
+
+inline const flatbuffers::TypeTable *LayerNormTypeTable();
+
+inline const flatbuffers::TypeTable *RandomUniformTypeTable();
 
 enum BinaryOpOperation {
   BinaryOpOperation_ADD = 0,
@@ -268,7 +277,7 @@ inline const char * const *EnumNamesBinaryOpOperation() {
 
 inline const char *EnumNameBinaryOpOperation(BinaryOpOperation e) {
   if (e < BinaryOpOperation_ADD || e > BinaryOpOperation_NOTEQUAL) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesBinaryOpOperation()[index];
 }
 
@@ -319,7 +328,7 @@ inline const char * const *EnumNamesReductionType() {
 
 inline const char *EnumNameReductionType(ReductionType e) {
   if (e < ReductionType_SUM || e > ReductionType_ALL) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesReductionType()[index];
 }
 
@@ -353,11 +362,13 @@ enum UnaryOpOperation {
   UnaryOpOperation_ERFC = 26,
   UnaryOpOperation_ERFINV = 27,
   UnaryOpOperation_EXPM1 = 28,
+  UnaryOpOperation_SIGMOID = 29,
+  UnaryOpOperation_TANH = 30,
   UnaryOpOperation_MIN = UnaryOpOperation_ABS,
-  UnaryOpOperation_MAX = UnaryOpOperation_EXPM1
+  UnaryOpOperation_MAX = UnaryOpOperation_TANH
 };
 
-inline const UnaryOpOperation (&EnumValuesUnaryOpOperation())[29] {
+inline const UnaryOpOperation (&EnumValuesUnaryOpOperation())[31] {
   static const UnaryOpOperation values[] = {
     UnaryOpOperation_ABS,
     UnaryOpOperation_NEG,
@@ -387,7 +398,9 @@ inline const UnaryOpOperation (&EnumValuesUnaryOpOperation())[29] {
     UnaryOpOperation_ERF,
     UnaryOpOperation_ERFC,
     UnaryOpOperation_ERFINV,
-    UnaryOpOperation_EXPM1
+    UnaryOpOperation_EXPM1,
+    UnaryOpOperation_SIGMOID,
+    UnaryOpOperation_TANH
   };
   return values;
 }
@@ -423,14 +436,16 @@ inline const char * const *EnumNamesUnaryOpOperation() {
     "ERFC",
     "ERFINV",
     "EXPM1",
+    "SIGMOID",
+    "TANH",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameUnaryOpOperation(UnaryOpOperation e) {
-  if (e < UnaryOpOperation_ABS || e > UnaryOpOperation_EXPM1) return "";
-  const size_t index = static_cast<size_t>(e);
+  if (e < UnaryOpOperation_ABS || e > UnaryOpOperation_TANH) return "";
+  const size_t index = static_cast<int>(e);
   return EnumNamesUnaryOpOperation()[index];
 }
 
@@ -460,8 +475,38 @@ inline const char * const *EnumNamesCropAndResizeMethod() {
 
 inline const char *EnumNameCropAndResizeMethod(CropAndResizeMethod e) {
   if (e < CropAndResizeMethod_BILINEAR || e > CropAndResizeMethod_NEAREST) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesCropAndResizeMethod()[index];
+}
+
+enum DepthToSpaceMode {
+  DepthToSpaceMode_DCR = 0,
+  DepthToSpaceMode_CRD = 1,
+  DepthToSpaceMode_MIN = DepthToSpaceMode_DCR,
+  DepthToSpaceMode_MAX = DepthToSpaceMode_CRD
+};
+
+inline const DepthToSpaceMode (&EnumValuesDepthToSpaceMode())[2] {
+  static const DepthToSpaceMode values[] = {
+    DepthToSpaceMode_DCR,
+    DepthToSpaceMode_CRD
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesDepthToSpaceMode() {
+  static const char * const names[] = {
+    "DCR",
+    "CRD",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameDepthToSpaceMode(DepthToSpaceMode e) {
+  if (e < DepthToSpaceMode_DCR || e > DepthToSpaceMode_CRD) return "";
+  const size_t index = static_cast<int>(e);
+  return EnumNamesDepthToSpaceMode()[index];
 }
 
 enum PadValueMode {
@@ -493,7 +538,7 @@ inline const char * const *EnumNamesPadValueMode() {
 
 inline const char *EnumNamePadValueMode(PadValueMode e) {
   if (e < PadValueMode_CONSTANT || e > PadValueMode_SYMMETRIC) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesPadValueMode()[index];
 }
 
@@ -2797,8 +2842,10 @@ flatbuffers::Offset<BatchMatMulParam> CreateBatchMatMulParam(flatbuffers::FlatBu
 struct DepthSpaceParamT : public flatbuffers::NativeTable {
   typedef DepthSpaceParam TableType;
   int32_t blockSize;
+  DepthToSpaceMode mode;
   DepthSpaceParamT()
-      : blockSize(0) {
+      : blockSize(0),
+        mode(DepthToSpaceMode_DCR) {
   }
 };
 
@@ -2808,14 +2855,19 @@ struct DepthSpaceParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return DepthSpaceParamTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_BLOCKSIZE = 4
+    VT_BLOCKSIZE = 4,
+    VT_MODE = 6
   };
   int32_t blockSize() const {
     return GetField<int32_t>(VT_BLOCKSIZE, 0);
   }
+  DepthToSpaceMode mode() const {
+    return static_cast<DepthToSpaceMode>(GetField<int8_t>(VT_MODE, 0));
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_BLOCKSIZE) &&
+           VerifyField<int8_t>(verifier, VT_MODE) &&
            verifier.EndTable();
   }
   DepthSpaceParamT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -2828,6 +2880,9 @@ struct DepthSpaceParamBuilder {
   flatbuffers::uoffset_t start_;
   void add_blockSize(int32_t blockSize) {
     fbb_.AddElement<int32_t>(DepthSpaceParam::VT_BLOCKSIZE, blockSize, 0);
+  }
+  void add_mode(DepthToSpaceMode mode) {
+    fbb_.AddElement<int8_t>(DepthSpaceParam::VT_MODE, static_cast<int8_t>(mode), 0);
   }
   explicit DepthSpaceParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -2843,9 +2898,11 @@ struct DepthSpaceParamBuilder {
 
 inline flatbuffers::Offset<DepthSpaceParam> CreateDepthSpaceParam(
     flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t blockSize = 0) {
+    int32_t blockSize = 0,
+    DepthToSpaceMode mode = DepthToSpaceMode_DCR) {
   DepthSpaceParamBuilder builder_(_fbb);
   builder_.add_blockSize(blockSize);
+  builder_.add_mode(mode);
   return builder_.Finish();
 }
 
@@ -3209,6 +3266,209 @@ inline flatbuffers::Offset<PadParam> CreatePadParam(
 }
 
 flatbuffers::Offset<PadParam> CreatePadParam(flatbuffers::FlatBufferBuilder &_fbb, const PadParamT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct LayerNormT : public flatbuffers::NativeTable {
+  typedef LayerNorm TableType;
+  std::vector<int32_t> axis;
+  float epsilon;
+  std::vector<float> gamma;
+  std::vector<float> beta;
+  LayerNormT()
+      : epsilon(0.0f) {
+  }
+};
+
+struct LayerNorm FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef LayerNormT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return LayerNormTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_AXIS = 4,
+    VT_EPSILON = 6,
+    VT_GAMMA = 8,
+    VT_BETA = 10
+  };
+  const flatbuffers::Vector<int32_t> *axis() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_AXIS);
+  }
+  float epsilon() const {
+    return GetField<float>(VT_EPSILON, 0.0f);
+  }
+  const flatbuffers::Vector<float> *gamma() const {
+    return GetPointer<const flatbuffers::Vector<float> *>(VT_GAMMA);
+  }
+  const flatbuffers::Vector<float> *beta() const {
+    return GetPointer<const flatbuffers::Vector<float> *>(VT_BETA);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_AXIS) &&
+           verifier.VerifyVector(axis()) &&
+           VerifyField<float>(verifier, VT_EPSILON) &&
+           VerifyOffset(verifier, VT_GAMMA) &&
+           verifier.VerifyVector(gamma()) &&
+           VerifyOffset(verifier, VT_BETA) &&
+           verifier.VerifyVector(beta()) &&
+           verifier.EndTable();
+  }
+  LayerNormT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(LayerNormT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<LayerNorm> Pack(flatbuffers::FlatBufferBuilder &_fbb, const LayerNormT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct LayerNormBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_axis(flatbuffers::Offset<flatbuffers::Vector<int32_t>> axis) {
+    fbb_.AddOffset(LayerNorm::VT_AXIS, axis);
+  }
+  void add_epsilon(float epsilon) {
+    fbb_.AddElement<float>(LayerNorm::VT_EPSILON, epsilon, 0.0f);
+  }
+  void add_gamma(flatbuffers::Offset<flatbuffers::Vector<float>> gamma) {
+    fbb_.AddOffset(LayerNorm::VT_GAMMA, gamma);
+  }
+  void add_beta(flatbuffers::Offset<flatbuffers::Vector<float>> beta) {
+    fbb_.AddOffset(LayerNorm::VT_BETA, beta);
+  }
+  explicit LayerNormBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  LayerNormBuilder &operator=(const LayerNormBuilder &);
+  flatbuffers::Offset<LayerNorm> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<LayerNorm>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<LayerNorm> CreateLayerNorm(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> axis = 0,
+    float epsilon = 0.0f,
+    flatbuffers::Offset<flatbuffers::Vector<float>> gamma = 0,
+    flatbuffers::Offset<flatbuffers::Vector<float>> beta = 0) {
+  LayerNormBuilder builder_(_fbb);
+  builder_.add_beta(beta);
+  builder_.add_gamma(gamma);
+  builder_.add_epsilon(epsilon);
+  builder_.add_axis(axis);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<LayerNorm> CreateLayerNormDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<int32_t> *axis = nullptr,
+    float epsilon = 0.0f,
+    const std::vector<float> *gamma = nullptr,
+    const std::vector<float> *beta = nullptr) {
+  auto axis__ = axis ? _fbb.CreateVector<int32_t>(*axis) : 0;
+  auto gamma__ = gamma ? _fbb.CreateVector<float>(*gamma) : 0;
+  auto beta__ = beta ? _fbb.CreateVector<float>(*beta) : 0;
+  return MNN::CreateLayerNorm(
+      _fbb,
+      axis__,
+      epsilon,
+      gamma__,
+      beta__);
+}
+
+flatbuffers::Offset<LayerNorm> CreateLayerNorm(flatbuffers::FlatBufferBuilder &_fbb, const LayerNormT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct RandomUniformT : public flatbuffers::NativeTable {
+  typedef RandomUniform TableType;
+  int32_t seed;
+  int32_t seed2;
+  DataType type;
+  DataType T;
+  RandomUniformT()
+      : seed(0),
+        seed2(0),
+        type(DataType_DT_FLOAT),
+        T(DataType_DT_INT32) {
+  }
+};
+
+struct RandomUniform FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RandomUniformT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return RandomUniformTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SEED = 4,
+    VT_SEED2 = 6,
+    VT_TYPE = 8,
+    VT_T = 10
+  };
+  int32_t seed() const {
+    return GetField<int32_t>(VT_SEED, 0);
+  }
+  int32_t seed2() const {
+    return GetField<int32_t>(VT_SEED2, 0);
+  }
+  DataType type() const {
+    return static_cast<DataType>(GetField<int32_t>(VT_TYPE, 1));
+  }
+  DataType T() const {
+    return static_cast<DataType>(GetField<int32_t>(VT_T, 3));
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_SEED) &&
+           VerifyField<int32_t>(verifier, VT_SEED2) &&
+           VerifyField<int32_t>(verifier, VT_TYPE) &&
+           VerifyField<int32_t>(verifier, VT_T) &&
+           verifier.EndTable();
+  }
+  RandomUniformT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(RandomUniformT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<RandomUniform> Pack(flatbuffers::FlatBufferBuilder &_fbb, const RandomUniformT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct RandomUniformBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_seed(int32_t seed) {
+    fbb_.AddElement<int32_t>(RandomUniform::VT_SEED, seed, 0);
+  }
+  void add_seed2(int32_t seed2) {
+    fbb_.AddElement<int32_t>(RandomUniform::VT_SEED2, seed2, 0);
+  }
+  void add_type(DataType type) {
+    fbb_.AddElement<int32_t>(RandomUniform::VT_TYPE, static_cast<int32_t>(type), 1);
+  }
+  void add_T(DataType T) {
+    fbb_.AddElement<int32_t>(RandomUniform::VT_T, static_cast<int32_t>(T), 3);
+  }
+  explicit RandomUniformBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  RandomUniformBuilder &operator=(const RandomUniformBuilder &);
+  flatbuffers::Offset<RandomUniform> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<RandomUniform>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<RandomUniform> CreateRandomUniform(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t seed = 0,
+    int32_t seed2 = 0,
+    DataType type = DataType_DT_FLOAT,
+    DataType T = DataType_DT_INT32) {
+  RandomUniformBuilder builder_(_fbb);
+  builder_.add_T(T);
+  builder_.add_type(type);
+  builder_.add_seed2(seed2);
+  builder_.add_seed(seed);
+  return builder_.Finish();
+}
+
+flatbuffers::Offset<RandomUniform> CreateRandomUniform(flatbuffers::FlatBufferBuilder &_fbb, const RandomUniformT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline BinaryOpT *BinaryOp::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = new BinaryOpT();
@@ -4112,6 +4372,7 @@ inline void DepthSpaceParam::UnPackTo(DepthSpaceParamT *_o, const flatbuffers::r
   (void)_o;
   (void)_resolver;
   { auto _e = blockSize(); _o->blockSize = _e; };
+  { auto _e = mode(); _o->mode = _e; };
 }
 
 inline flatbuffers::Offset<DepthSpaceParam> DepthSpaceParam::Pack(flatbuffers::FlatBufferBuilder &_fbb, const DepthSpaceParamT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -4123,9 +4384,11 @@ inline flatbuffers::Offset<DepthSpaceParam> CreateDepthSpaceParam(flatbuffers::F
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const DepthSpaceParamT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _blockSize = _o->blockSize;
+  auto _mode = _o->mode;
   return MNN::CreateDepthSpaceParam(
       _fbb,
-      _blockSize);
+      _blockSize,
+      _mode);
 }
 
 inline ReverseSequenceParamT *ReverseSequenceParam::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -4259,6 +4522,76 @@ inline flatbuffers::Offset<PadParam> CreatePadParam(flatbuffers::FlatBufferBuild
       _mode);
 }
 
+inline LayerNormT *LayerNorm::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new LayerNormT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void LayerNorm::UnPackTo(LayerNormT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = axis(); if (_e) { _o->axis.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->axis[_i] = _e->Get(_i); } } };
+  { auto _e = epsilon(); _o->epsilon = _e; };
+  { auto _e = gamma(); if (_e) { _o->gamma.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->gamma[_i] = _e->Get(_i); } } };
+  { auto _e = beta(); if (_e) { _o->beta.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->beta[_i] = _e->Get(_i); } } };
+}
+
+inline flatbuffers::Offset<LayerNorm> LayerNorm::Pack(flatbuffers::FlatBufferBuilder &_fbb, const LayerNormT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateLayerNorm(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<LayerNorm> CreateLayerNorm(flatbuffers::FlatBufferBuilder &_fbb, const LayerNormT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const LayerNormT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _axis = _o->axis.size() ? _fbb.CreateVector(_o->axis) : 0;
+  auto _epsilon = _o->epsilon;
+  auto _gamma = _o->gamma.size() ? _fbb.CreateVector(_o->gamma) : 0;
+  auto _beta = _o->beta.size() ? _fbb.CreateVector(_o->beta) : 0;
+  return MNN::CreateLayerNorm(
+      _fbb,
+      _axis,
+      _epsilon,
+      _gamma,
+      _beta);
+}
+
+inline RandomUniformT *RandomUniform::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new RandomUniformT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void RandomUniform::UnPackTo(RandomUniformT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = seed(); _o->seed = _e; };
+  { auto _e = seed2(); _o->seed2 = _e; };
+  { auto _e = type(); _o->type = _e; };
+  { auto _e = T(); _o->T = _e; };
+}
+
+inline flatbuffers::Offset<RandomUniform> RandomUniform::Pack(flatbuffers::FlatBufferBuilder &_fbb, const RandomUniformT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateRandomUniform(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<RandomUniform> CreateRandomUniform(flatbuffers::FlatBufferBuilder &_fbb, const RandomUniformT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const RandomUniformT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _seed = _o->seed;
+  auto _seed2 = _o->seed2;
+  auto _type = _o->type;
+  auto _T = _o->T;
+  return MNN::CreateRandomUniform(
+      _fbb,
+      _seed,
+      _seed2,
+      _type,
+      _T);
+}
+
 inline const flatbuffers::TypeTable *BinaryOpOperationTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -4380,6 +4713,8 @@ inline const flatbuffers::TypeTable *UnaryOpOperationTypeTable() {
     { flatbuffers::ET_INT, 0, 0 },
     { flatbuffers::ET_INT, 0, 0 },
     { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 },
     { flatbuffers::ET_INT, 0, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
@@ -4414,10 +4749,12 @@ inline const flatbuffers::TypeTable *UnaryOpOperationTypeTable() {
     "ERF",
     "ERFC",
     "ERFINV",
-    "EXPM1"
+    "EXPM1",
+    "SIGMOID",
+    "TANH"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 29, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 31, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -4433,6 +4770,24 @@ inline const flatbuffers::TypeTable *CropAndResizeMethodTypeTable() {
   static const char * const names[] = {
     "BILINEAR",
     "NEAREST"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *DepthToSpaceModeTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    DepthToSpaceModeTypeTable
+  };
+  static const char * const names[] = {
+    "DCR",
+    "CRD"
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, names
@@ -4984,13 +5339,18 @@ inline const flatbuffers::TypeTable *BatchMatMulParamTypeTable() {
 
 inline const flatbuffers::TypeTable *DepthSpaceParamTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_INT, 0, -1 }
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    DepthToSpaceModeTypeTable
   };
   static const char * const names[] = {
-    "blockSize"
+    "blockSize",
+    "mode"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -5067,6 +5427,47 @@ inline const flatbuffers::TypeTable *PadParamTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *LayerNormTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 1, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 1, -1 },
+    { flatbuffers::ET_FLOAT, 1, -1 }
+  };
+  static const char * const names[] = {
+    "axis",
+    "epsilon",
+    "gamma",
+    "beta"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 4, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *RandomUniformTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    DataTypeTypeTable
+  };
+  static const char * const names[] = {
+    "seed",
+    "seed2",
+    "type",
+    "T"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

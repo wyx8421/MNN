@@ -1,16 +1,16 @@
 //
-//  MNNMemoryUtils.c
+//  MNNMemoryUtils.cpp
 //  MNN
 //
 //  Created by MNN on 2018/07/14.
 //  Copyright © 2018, Alibaba Group Holding Limited
 //
 
+#include "core/MNNMemoryUtils.h"
 #include <stdint.h>
 #include <stdlib.h>
-#include "core/MNNMemoryUtils.h"
 #include "core/Macro.h"
-
+//#define MNN_DEBUG_MEMORY
 static inline void **alignPointer(void **ptr, size_t alignment) {
     return (void **)((intptr_t)((unsigned char *)ptr + alignment - 1) & -alignment);
 }

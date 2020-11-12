@@ -4,7 +4,6 @@
 #ifndef FLATBUFFERS_GENERATED_MNN_MNN_H_
 #define FLATBUFFERS_GENERATED_MNN_MNN_H_
 
-#include "flatbuffers/flatbuffers.h"
 
 #include "CaffeOp_generated.h"
 #include "GpuLibrary_generated.h"
@@ -22,11 +21,29 @@ struct PluginT;
 struct Extra;
 struct ExtraT;
 
+struct StringVec;
+struct StringVecT;
+
+struct WhileParam;
+struct WhileParamT;
+
+struct IfParam;
+struct IfParamT;
+
 struct Op;
 struct OpT;
 
+struct View;
+struct ViewT;
+
+struct Region;
+struct RegionT;
+
 struct TensorDescribe;
 struct TensorDescribeT;
+
+struct SubGraphProto;
+struct SubGraphProtoT;
 
 struct Net;
 struct NetT;
@@ -35,9 +52,21 @@ inline const flatbuffers::TypeTable *PluginTypeTable();
 
 inline const flatbuffers::TypeTable *ExtraTypeTable();
 
+inline const flatbuffers::TypeTable *StringVecTypeTable();
+
+inline const flatbuffers::TypeTable *WhileParamTypeTable();
+
+inline const flatbuffers::TypeTable *IfParamTypeTable();
+
 inline const flatbuffers::TypeTable *OpTypeTable();
 
+inline const flatbuffers::TypeTable *ViewTypeTable();
+
+inline const flatbuffers::TypeTable *RegionTypeTable();
+
 inline const flatbuffers::TypeTable *TensorDescribeTypeTable();
+
+inline const flatbuffers::TypeTable *SubGraphProtoTypeTable();
 
 inline const flatbuffers::TypeTable *NetTypeTable();
 
@@ -164,11 +193,12 @@ enum OpType {
   OpType_OneHot = 119,
   OpType_BroadcastTo = 120,
   OpType_Dilation2D = 121,
-  OpType_MaxLayerCount = 128,
+  OpType_Raster = 128,
   OpType_ConvertTensor = 129,
   OpType_ArgMin = 130,
   OpType_LinSpace = 131,
-  OpType_PLUGIN = 256,
+  OpType_RandomUniform = 132,
+  OpType_Plugin = 256,
   OpType_Select = 257,
   OpType_ZerosLike = 258,
   OpType_Broastcast = 259,
@@ -180,6 +210,7 @@ enum OpType {
   OpType_Conv2DBackPropFilter = 265,
   OpType_TrainableParam = 266,
   OpType_BatchNorm = 267,
+  OpType_ZeroGrad = 268,
   OpType_Extra = 512,
   OpType_ConvInt8 = 513,
   OpType_Int8ToFloat = 514,
@@ -187,11 +218,14 @@ enum OpType {
   OpType_PoolInt8 = 516,
   OpType_FloatToInt8 = 517,
   OpType_EltwiseInt8 = 518,
+  OpType_While = 600,
+  OpType_If = 601,
+  OpType_LayerNorm = 603,
   OpType_MIN = OpType_AbsVal,
-  OpType_MAX = OpType_EltwiseInt8
+  OpType_MAX = OpType_LayerNorm
 };
 
-inline const OpType (&EnumValuesOpType())[145] {
+inline const OpType (&EnumValuesOpType())[150] {
   static const OpType values[] = {
     OpType_AbsVal,
     OpType_QuantizedAdd,
@@ -315,11 +349,12 @@ inline const OpType (&EnumValuesOpType())[145] {
     OpType_OneHot,
     OpType_BroadcastTo,
     OpType_Dilation2D,
-    OpType_MaxLayerCount,
+    OpType_Raster,
     OpType_ConvertTensor,
     OpType_ArgMin,
     OpType_LinSpace,
-    OpType_PLUGIN,
+    OpType_RandomUniform,
+    OpType_Plugin,
     OpType_Select,
     OpType_ZerosLike,
     OpType_Broastcast,
@@ -331,13 +366,17 @@ inline const OpType (&EnumValuesOpType())[145] {
     OpType_Conv2DBackPropFilter,
     OpType_TrainableParam,
     OpType_BatchNorm,
+    OpType_ZeroGrad,
     OpType_Extra,
     OpType_ConvInt8,
     OpType_Int8ToFloat,
     OpType_DepthwiseConvInt8,
     OpType_PoolInt8,
     OpType_FloatToInt8,
-    OpType_EltwiseInt8
+    OpType_EltwiseInt8,
+    OpType_While,
+    OpType_If,
+    OpType_LayerNorm
   };
   return values;
 }
@@ -472,10 +511,11 @@ inline const char * const *EnumNamesOpType() {
     "",
     "",
     "",
-    "MaxLayerCount",
+    "Raster",
     "ConvertTensor",
     "ArgMin",
     "LinSpace",
+    "RandomUniform",
     "",
     "",
     "",
@@ -599,8 +639,7 @@ inline const char * const *EnumNamesOpType() {
     "",
     "",
     "",
-    "",
-    "PLUGIN",
+    "Plugin",
     "Select",
     "ZerosLike",
     "Broastcast",
@@ -612,7 +651,7 @@ inline const char * const *EnumNamesOpType() {
     "Conv2DBackPropFilter",
     "TrainableParam",
     "BatchNorm",
-    "",
+    "ZeroGrad",
     "",
     "",
     "",
@@ -863,14 +902,99 @@ inline const char * const *EnumNamesOpType() {
     "PoolInt8",
     "FloatToInt8",
     "EltwiseInt8",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "While",
+    "If",
+    "",
+    "LayerNorm",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameOpType(OpType e) {
-  if (e < OpType_AbsVal || e > OpType_EltwiseInt8) return "";
-  const size_t index = static_cast<size_t>(e);
+  if (e < OpType_AbsVal || e > OpType_LayerNorm) return "";
+  const size_t index = static_cast<int>(e);
   return EnumNamesOpType()[index];
 }
 
@@ -960,11 +1084,15 @@ enum OpParameter {
   OpParameter_DetectionPostProcessParam = 82,
   OpParameter_OneHotParam = 83,
   OpParameter_PadParam = 84,
+  OpParameter_WhileParam = 85,
+  OpParameter_IfParam = 86,
+  OpParameter_RandomUniform = 87,
+  OpParameter_LayerNorm = 88,
   OpParameter_MIN = OpParameter_NONE,
-  OpParameter_MAX = OpParameter_PadParam
+  OpParameter_MAX = OpParameter_LayerNorm
 };
 
-inline const OpParameter (&EnumValuesOpParameter())[85] {
+inline const OpParameter (&EnumValuesOpParameter())[89] {
   static const OpParameter values[] = {
     OpParameter_NONE,
     OpParameter_QuantizedAdd,
@@ -1050,7 +1178,11 @@ inline const OpParameter (&EnumValuesOpParameter())[85] {
     OpParameter_ELU,
     OpParameter_DetectionPostProcessParam,
     OpParameter_OneHotParam,
-    OpParameter_PadParam
+    OpParameter_PadParam,
+    OpParameter_WhileParam,
+    OpParameter_IfParam,
+    OpParameter_RandomUniform,
+    OpParameter_LayerNorm
   };
   return values;
 }
@@ -1142,14 +1274,18 @@ inline const char * const *EnumNamesOpParameter() {
     "DetectionPostProcessParam",
     "OneHotParam",
     "PadParam",
+    "WhileParam",
+    "IfParam",
+    "RandomUniform",
+    "LayerNorm",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameOpParameter(OpParameter e) {
-  if (e < OpParameter_NONE || e > OpParameter_PadParam) return "";
-  const size_t index = static_cast<size_t>(e);
+  if (e < OpParameter_NONE || e > OpParameter_LayerNorm) return "";
+  const size_t index = static_cast<int>(e);
   return EnumNamesOpParameter()[index];
 }
 
@@ -1493,6 +1629,22 @@ template<> struct OpParameterTraits<PadParam> {
   static const OpParameter enum_value = OpParameter_PadParam;
 };
 
+template<> struct OpParameterTraits<WhileParam> {
+  static const OpParameter enum_value = OpParameter_WhileParam;
+};
+
+template<> struct OpParameterTraits<IfParam> {
+  static const OpParameter enum_value = OpParameter_IfParam;
+};
+
+template<> struct OpParameterTraits<RandomUniform> {
+  static const OpParameter enum_value = OpParameter_RandomUniform;
+};
+
+template<> struct OpParameterTraits<LayerNorm> {
+  static const OpParameter enum_value = OpParameter_LayerNorm;
+};
+
 struct OpParameterUnion {
   OpParameter type;
   void *value;
@@ -1513,11 +1665,10 @@ struct OpParameterUnion {
 #ifndef FLATBUFFERS_CPP98_STL
   template <typename T>
   void Set(T&& val) {
-    using RT = typename std::remove_reference<T>::type;
     Reset();
-    type = OpParameterTraits<typename RT::TableType>::enum_value;
+    type = OpParameterTraits<typename T::TableType>::enum_value;
     if (type != OpParameter_NONE) {
-      value = new RT(std::forward<T>(val));
+      value = new T(std::forward<T>(val));
     }
   }
 #endif  // FLATBUFFERS_CPP98_STL
@@ -2197,6 +2348,38 @@ struct OpParameterUnion {
     return type == OpParameter_PadParam ?
       reinterpret_cast<const PadParamT *>(value) : nullptr;
   }
+  WhileParamT *AsWhileParam() {
+    return type == OpParameter_WhileParam ?
+      reinterpret_cast<WhileParamT *>(value) : nullptr;
+  }
+  const WhileParamT *AsWhileParam() const {
+    return type == OpParameter_WhileParam ?
+      reinterpret_cast<const WhileParamT *>(value) : nullptr;
+  }
+  IfParamT *AsIfParam() {
+    return type == OpParameter_IfParam ?
+      reinterpret_cast<IfParamT *>(value) : nullptr;
+  }
+  const IfParamT *AsIfParam() const {
+    return type == OpParameter_IfParam ?
+      reinterpret_cast<const IfParamT *>(value) : nullptr;
+  }
+  RandomUniformT *AsRandomUniform() {
+    return type == OpParameter_RandomUniform ?
+      reinterpret_cast<RandomUniformT *>(value) : nullptr;
+  }
+  const RandomUniformT *AsRandomUniform() const {
+    return type == OpParameter_RandomUniform ?
+      reinterpret_cast<const RandomUniformT *>(value) : nullptr;
+  }
+  LayerNormT *AsLayerNorm() {
+    return type == OpParameter_LayerNorm ?
+      reinterpret_cast<LayerNormT *>(value) : nullptr;
+  }
+  const LayerNormT *AsLayerNorm() const {
+    return type == OpParameter_LayerNorm ?
+      reinterpret_cast<const LayerNormT *>(value) : nullptr;
+  }
 };
 
 bool VerifyOpParameter(flatbuffers::Verifier &verifier, const void *obj, OpParameter type);
@@ -2237,21 +2420,23 @@ inline const char * const *EnumNamesForwardType() {
 
 inline const char *EnumNameForwardType(ForwardType e) {
   if (e < ForwardType_CPU || e > ForwardType_VULKAN) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesForwardType()[index];
 }
 
 enum Usage {
   Usage_INFERENCE = 0,
   Usage_TRAIN = 1,
+  Usage_INFERENCE_STATIC = 2,
   Usage_MIN = Usage_INFERENCE,
-  Usage_MAX = Usage_TRAIN
+  Usage_MAX = Usage_INFERENCE_STATIC
 };
 
-inline const Usage (&EnumValuesUsage())[2] {
+inline const Usage (&EnumValuesUsage())[3] {
   static const Usage values[] = {
     Usage_INFERENCE,
-    Usage_TRAIN
+    Usage_TRAIN,
+    Usage_INFERENCE_STATIC
   };
   return values;
 }
@@ -2260,21 +2445,22 @@ inline const char * const *EnumNamesUsage() {
   static const char * const names[] = {
     "INFERENCE",
     "TRAIN",
+    "INFERENCE_STATIC",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameUsage(Usage e) {
-  if (e < Usage_INFERENCE || e > Usage_TRAIN) return "";
-  const size_t index = static_cast<size_t>(e);
+  if (e < Usage_INFERENCE || e > Usage_INFERENCE_STATIC) return "";
+  const size_t index = static_cast<int>(e);
   return EnumNamesUsage()[index];
 }
 
 struct PluginT : public flatbuffers::NativeTable {
   typedef Plugin TableType;
   std::string type;
-  std::vector<std::unique_ptr<BlobT>> buffer;
+  std::vector<std::unique_ptr<AttributeT>> attr;
   PluginT() {
   }
 };
@@ -2286,21 +2472,21 @@ struct Plugin FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TYPE = 4,
-    VT_BUFFER = 6
+    VT_ATTR = 6
   };
   const flatbuffers::String *type() const {
     return GetPointer<const flatbuffers::String *>(VT_TYPE);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<Blob>> *buffer() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Blob>> *>(VT_BUFFER);
+  const flatbuffers::Vector<flatbuffers::Offset<Attribute>> *attr() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Attribute>> *>(VT_ATTR);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_TYPE) &&
            verifier.VerifyString(type()) &&
-           VerifyOffset(verifier, VT_BUFFER) &&
-           verifier.VerifyVector(buffer()) &&
-           verifier.VerifyVectorOfTables(buffer()) &&
+           VerifyOffset(verifier, VT_ATTR) &&
+           verifier.VerifyVector(attr()) &&
+           verifier.VerifyVectorOfTables(attr()) &&
            verifier.EndTable();
   }
   PluginT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -2314,8 +2500,8 @@ struct PluginBuilder {
   void add_type(flatbuffers::Offset<flatbuffers::String> type) {
     fbb_.AddOffset(Plugin::VT_TYPE, type);
   }
-  void add_buffer(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Blob>>> buffer) {
-    fbb_.AddOffset(Plugin::VT_BUFFER, buffer);
+  void add_attr(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attribute>>> attr) {
+    fbb_.AddOffset(Plugin::VT_ATTR, attr);
   }
   explicit PluginBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -2332,9 +2518,9 @@ struct PluginBuilder {
 inline flatbuffers::Offset<Plugin> CreatePlugin(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> type = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Blob>>> buffer = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Attribute>>> attr = 0) {
   PluginBuilder builder_(_fbb);
-  builder_.add_buffer(buffer);
+  builder_.add_attr(attr);
   builder_.add_type(type);
   return builder_.Finish();
 }
@@ -2342,13 +2528,13 @@ inline flatbuffers::Offset<Plugin> CreatePlugin(
 inline flatbuffers::Offset<Plugin> CreatePluginDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *type = nullptr,
-    const std::vector<flatbuffers::Offset<Blob>> *buffer = nullptr) {
+    const std::vector<flatbuffers::Offset<Attribute>> *attr = nullptr) {
   auto type__ = type ? _fbb.CreateString(type) : 0;
-  auto buffer__ = buffer ? _fbb.CreateVector<flatbuffers::Offset<Blob>>(*buffer) : 0;
+  auto attr__ = attr ? _fbb.CreateVector<flatbuffers::Offset<Attribute>>(*attr) : 0;
   return MNN::CreatePlugin(
       _fbb,
       type__,
-      buffer__);
+      attr__);
 }
 
 flatbuffers::Offset<Plugin> CreatePlugin(flatbuffers::FlatBufferBuilder &_fbb, const PluginT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -2464,6 +2650,315 @@ inline flatbuffers::Offset<Extra> CreateExtraDirect(
 }
 
 flatbuffers::Offset<Extra> CreateExtra(flatbuffers::FlatBufferBuilder &_fbb, const ExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct StringVecT : public flatbuffers::NativeTable {
+  typedef StringVec TableType;
+  std::vector<std::string> data;
+  StringVecT() {
+  }
+};
+
+struct StringVec FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StringVecT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return StringVecTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_DATA = 4
+  };
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *data() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_DATA);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_DATA) &&
+           verifier.VerifyVector(data()) &&
+           verifier.VerifyVectorOfStrings(data()) &&
+           verifier.EndTable();
+  }
+  StringVecT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(StringVecT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<StringVec> Pack(flatbuffers::FlatBufferBuilder &_fbb, const StringVecT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct StringVecBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_data(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> data) {
+    fbb_.AddOffset(StringVec::VT_DATA, data);
+  }
+  explicit StringVecBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  StringVecBuilder &operator=(const StringVecBuilder &);
+  flatbuffers::Offset<StringVec> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<StringVec>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<StringVec> CreateStringVec(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> data = 0) {
+  StringVecBuilder builder_(_fbb);
+  builder_.add_data(data);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<StringVec> CreateStringVecDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *data = nullptr) {
+  auto data__ = data ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*data) : 0;
+  return MNN::CreateStringVec(
+      _fbb,
+      data__);
+}
+
+flatbuffers::Offset<StringVec> CreateStringVec(flatbuffers::FlatBufferBuilder &_fbb, const StringVecT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct WhileParamT : public flatbuffers::NativeTable {
+  typedef WhileParam TableType;
+  std::string cond_graph;
+  std::string body_graph;
+  std::vector<std::unique_ptr<StringVecT>> aliases_inputs;
+  std::vector<std::string> aliases_outputs;
+  std::vector<std::unique_ptr<StringVecT>> aliases_updates;
+  WhileParamT() {
+  }
+};
+
+struct WhileParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef WhileParamT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return WhileParamTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_COND_GRAPH = 4,
+    VT_BODY_GRAPH = 6,
+    VT_ALIASES_INPUTS = 8,
+    VT_ALIASES_OUTPUTS = 10,
+    VT_ALIASES_UPDATES = 12
+  };
+  const flatbuffers::String *cond_graph() const {
+    return GetPointer<const flatbuffers::String *>(VT_COND_GRAPH);
+  }
+  const flatbuffers::String *body_graph() const {
+    return GetPointer<const flatbuffers::String *>(VT_BODY_GRAPH);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *aliases_inputs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *>(VT_ALIASES_INPUTS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *aliases_outputs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_ALIASES_OUTPUTS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *aliases_updates() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *>(VT_ALIASES_UPDATES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_COND_GRAPH) &&
+           verifier.VerifyString(cond_graph()) &&
+           VerifyOffset(verifier, VT_BODY_GRAPH) &&
+           verifier.VerifyString(body_graph()) &&
+           VerifyOffset(verifier, VT_ALIASES_INPUTS) &&
+           verifier.VerifyVector(aliases_inputs()) &&
+           verifier.VerifyVectorOfTables(aliases_inputs()) &&
+           VerifyOffset(verifier, VT_ALIASES_OUTPUTS) &&
+           verifier.VerifyVector(aliases_outputs()) &&
+           verifier.VerifyVectorOfStrings(aliases_outputs()) &&
+           VerifyOffset(verifier, VT_ALIASES_UPDATES) &&
+           verifier.VerifyVector(aliases_updates()) &&
+           verifier.VerifyVectorOfTables(aliases_updates()) &&
+           verifier.EndTable();
+  }
+  WhileParamT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(WhileParamT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<WhileParam> Pack(flatbuffers::FlatBufferBuilder &_fbb, const WhileParamT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct WhileParamBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_cond_graph(flatbuffers::Offset<flatbuffers::String> cond_graph) {
+    fbb_.AddOffset(WhileParam::VT_COND_GRAPH, cond_graph);
+  }
+  void add_body_graph(flatbuffers::Offset<flatbuffers::String> body_graph) {
+    fbb_.AddOffset(WhileParam::VT_BODY_GRAPH, body_graph);
+  }
+  void add_aliases_inputs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_inputs) {
+    fbb_.AddOffset(WhileParam::VT_ALIASES_INPUTS, aliases_inputs);
+  }
+  void add_aliases_outputs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> aliases_outputs) {
+    fbb_.AddOffset(WhileParam::VT_ALIASES_OUTPUTS, aliases_outputs);
+  }
+  void add_aliases_updates(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_updates) {
+    fbb_.AddOffset(WhileParam::VT_ALIASES_UPDATES, aliases_updates);
+  }
+  explicit WhileParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  WhileParamBuilder &operator=(const WhileParamBuilder &);
+  flatbuffers::Offset<WhileParam> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<WhileParam>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<WhileParam> CreateWhileParam(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> cond_graph = 0,
+    flatbuffers::Offset<flatbuffers::String> body_graph = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_inputs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> aliases_outputs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_updates = 0) {
+  WhileParamBuilder builder_(_fbb);
+  builder_.add_aliases_updates(aliases_updates);
+  builder_.add_aliases_outputs(aliases_outputs);
+  builder_.add_aliases_inputs(aliases_inputs);
+  builder_.add_body_graph(body_graph);
+  builder_.add_cond_graph(cond_graph);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<WhileParam> CreateWhileParamDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *cond_graph = nullptr,
+    const char *body_graph = nullptr,
+    const std::vector<flatbuffers::Offset<StringVec>> *aliases_inputs = nullptr,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *aliases_outputs = nullptr,
+    const std::vector<flatbuffers::Offset<StringVec>> *aliases_updates = nullptr) {
+  auto cond_graph__ = cond_graph ? _fbb.CreateString(cond_graph) : 0;
+  auto body_graph__ = body_graph ? _fbb.CreateString(body_graph) : 0;
+  auto aliases_inputs__ = aliases_inputs ? _fbb.CreateVector<flatbuffers::Offset<StringVec>>(*aliases_inputs) : 0;
+  auto aliases_outputs__ = aliases_outputs ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*aliases_outputs) : 0;
+  auto aliases_updates__ = aliases_updates ? _fbb.CreateVector<flatbuffers::Offset<StringVec>>(*aliases_updates) : 0;
+  return MNN::CreateWhileParam(
+      _fbb,
+      cond_graph__,
+      body_graph__,
+      aliases_inputs__,
+      aliases_outputs__,
+      aliases_updates__);
+}
+
+flatbuffers::Offset<WhileParam> CreateWhileParam(flatbuffers::FlatBufferBuilder &_fbb, const WhileParamT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct IfParamT : public flatbuffers::NativeTable {
+  typedef IfParam TableType;
+  std::string then_graph;
+  std::string else_graph;
+  std::vector<std::unique_ptr<StringVecT>> aliases_inputs;
+  std::vector<std::unique_ptr<StringVecT>> aliases_outputs;
+  IfParamT() {
+  }
+};
+
+struct IfParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef IfParamT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return IfParamTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_THEN_GRAPH = 4,
+    VT_ELSE_GRAPH = 6,
+    VT_ALIASES_INPUTS = 8,
+    VT_ALIASES_OUTPUTS = 10
+  };
+  const flatbuffers::String *then_graph() const {
+    return GetPointer<const flatbuffers::String *>(VT_THEN_GRAPH);
+  }
+  const flatbuffers::String *else_graph() const {
+    return GetPointer<const flatbuffers::String *>(VT_ELSE_GRAPH);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *aliases_inputs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *>(VT_ALIASES_INPUTS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *aliases_outputs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<StringVec>> *>(VT_ALIASES_OUTPUTS);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_THEN_GRAPH) &&
+           verifier.VerifyString(then_graph()) &&
+           VerifyOffset(verifier, VT_ELSE_GRAPH) &&
+           verifier.VerifyString(else_graph()) &&
+           VerifyOffset(verifier, VT_ALIASES_INPUTS) &&
+           verifier.VerifyVector(aliases_inputs()) &&
+           verifier.VerifyVectorOfTables(aliases_inputs()) &&
+           VerifyOffset(verifier, VT_ALIASES_OUTPUTS) &&
+           verifier.VerifyVector(aliases_outputs()) &&
+           verifier.VerifyVectorOfTables(aliases_outputs()) &&
+           verifier.EndTable();
+  }
+  IfParamT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(IfParamT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<IfParam> Pack(flatbuffers::FlatBufferBuilder &_fbb, const IfParamT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct IfParamBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_then_graph(flatbuffers::Offset<flatbuffers::String> then_graph) {
+    fbb_.AddOffset(IfParam::VT_THEN_GRAPH, then_graph);
+  }
+  void add_else_graph(flatbuffers::Offset<flatbuffers::String> else_graph) {
+    fbb_.AddOffset(IfParam::VT_ELSE_GRAPH, else_graph);
+  }
+  void add_aliases_inputs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_inputs) {
+    fbb_.AddOffset(IfParam::VT_ALIASES_INPUTS, aliases_inputs);
+  }
+  void add_aliases_outputs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_outputs) {
+    fbb_.AddOffset(IfParam::VT_ALIASES_OUTPUTS, aliases_outputs);
+  }
+  explicit IfParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  IfParamBuilder &operator=(const IfParamBuilder &);
+  flatbuffers::Offset<IfParam> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<IfParam>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<IfParam> CreateIfParam(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> then_graph = 0,
+    flatbuffers::Offset<flatbuffers::String> else_graph = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_inputs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StringVec>>> aliases_outputs = 0) {
+  IfParamBuilder builder_(_fbb);
+  builder_.add_aliases_outputs(aliases_outputs);
+  builder_.add_aliases_inputs(aliases_inputs);
+  builder_.add_else_graph(else_graph);
+  builder_.add_then_graph(then_graph);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<IfParam> CreateIfParamDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *then_graph = nullptr,
+    const char *else_graph = nullptr,
+    const std::vector<flatbuffers::Offset<StringVec>> *aliases_inputs = nullptr,
+    const std::vector<flatbuffers::Offset<StringVec>> *aliases_outputs = nullptr) {
+  auto then_graph__ = then_graph ? _fbb.CreateString(then_graph) : 0;
+  auto else_graph__ = else_graph ? _fbb.CreateString(else_graph) : 0;
+  auto aliases_inputs__ = aliases_inputs ? _fbb.CreateVector<flatbuffers::Offset<StringVec>>(*aliases_inputs) : 0;
+  auto aliases_outputs__ = aliases_outputs ? _fbb.CreateVector<flatbuffers::Offset<StringVec>>(*aliases_outputs) : 0;
+  return MNN::CreateIfParam(
+      _fbb,
+      then_graph__,
+      else_graph__,
+      aliases_inputs__,
+      aliases_outputs__);
+}
+
+flatbuffers::Offset<IfParam> CreateIfParam(flatbuffers::FlatBufferBuilder &_fbb, const IfParamT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct OpT : public flatbuffers::NativeTable {
   typedef Op TableType;
@@ -2754,6 +3249,18 @@ struct Op FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const PadParam *main_as_PadParam() const {
     return main_type() == OpParameter_PadParam ? static_cast<const PadParam *>(main()) : nullptr;
+  }
+  const WhileParam *main_as_WhileParam() const {
+    return main_type() == OpParameter_WhileParam ? static_cast<const WhileParam *>(main()) : nullptr;
+  }
+  const IfParam *main_as_IfParam() const {
+    return main_type() == OpParameter_IfParam ? static_cast<const IfParam *>(main()) : nullptr;
+  }
+  const RandomUniform *main_as_RandomUniform() const {
+    return main_type() == OpParameter_RandomUniform ? static_cast<const RandomUniform *>(main()) : nullptr;
+  }
+  const LayerNorm *main_as_LayerNorm() const {
+    return main_type() == OpParameter_LayerNorm ? static_cast<const LayerNorm *>(main()) : nullptr;
   }
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -3123,6 +3630,22 @@ template<> inline const PadParam *Op::main_as<PadParam>() const {
   return main_as_PadParam();
 }
 
+template<> inline const WhileParam *Op::main_as<WhileParam>() const {
+  return main_as_WhileParam();
+}
+
+template<> inline const IfParam *Op::main_as<IfParam>() const {
+  return main_as_IfParam();
+}
+
+template<> inline const RandomUniform *Op::main_as<RandomUniform>() const {
+  return main_as_RandomUniform();
+}
+
+template<> inline const LayerNorm *Op::main_as<LayerNorm>() const {
+  return main_as_LayerNorm();
+}
+
 struct OpBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
@@ -3204,11 +3727,200 @@ inline flatbuffers::Offset<Op> CreateOpDirect(
 
 flatbuffers::Offset<Op> CreateOp(flatbuffers::FlatBufferBuilder &_fbb, const OpT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct ViewT : public flatbuffers::NativeTable {
+  typedef View TableType;
+  int32_t offset;
+  std::vector<int32_t> stride;
+  ViewT()
+      : offset(0) {
+  }
+};
+
+struct View FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef ViewT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return ViewTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_OFFSET = 4,
+    VT_STRIDE = 6
+  };
+  int32_t offset() const {
+    return GetField<int32_t>(VT_OFFSET, 0);
+  }
+  const flatbuffers::Vector<int32_t> *stride() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_STRIDE);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_OFFSET) &&
+           VerifyOffset(verifier, VT_STRIDE) &&
+           verifier.VerifyVector(stride()) &&
+           verifier.EndTable();
+  }
+  ViewT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(ViewT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<View> Pack(flatbuffers::FlatBufferBuilder &_fbb, const ViewT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct ViewBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_offset(int32_t offset) {
+    fbb_.AddElement<int32_t>(View::VT_OFFSET, offset, 0);
+  }
+  void add_stride(flatbuffers::Offset<flatbuffers::Vector<int32_t>> stride) {
+    fbb_.AddOffset(View::VT_STRIDE, stride);
+  }
+  explicit ViewBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ViewBuilder &operator=(const ViewBuilder &);
+  flatbuffers::Offset<View> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<View>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<View> CreateView(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t offset = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> stride = 0) {
+  ViewBuilder builder_(_fbb);
+  builder_.add_stride(stride);
+  builder_.add_offset(offset);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<View> CreateViewDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t offset = 0,
+    const std::vector<int32_t> *stride = nullptr) {
+  auto stride__ = stride ? _fbb.CreateVector<int32_t>(*stride) : 0;
+  return MNN::CreateView(
+      _fbb,
+      offset,
+      stride__);
+}
+
+flatbuffers::Offset<View> CreateView(flatbuffers::FlatBufferBuilder &_fbb, const ViewT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct RegionT : public flatbuffers::NativeTable {
+  typedef Region TableType;
+  std::unique_ptr<ViewT> src;
+  std::unique_ptr<ViewT> dst;
+  std::vector<int32_t> size;
+  int32_t origin;
+  RegionT()
+      : origin(0) {
+  }
+};
+
+struct Region FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RegionT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return RegionTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_SRC = 4,
+    VT_DST = 6,
+    VT_SIZE = 8,
+    VT_ORIGIN = 10
+  };
+  const View *src() const {
+    return GetPointer<const View *>(VT_SRC);
+  }
+  const View *dst() const {
+    return GetPointer<const View *>(VT_DST);
+  }
+  const flatbuffers::Vector<int32_t> *size() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_SIZE);
+  }
+  int32_t origin() const {
+    return GetField<int32_t>(VT_ORIGIN, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_SRC) &&
+           verifier.VerifyTable(src()) &&
+           VerifyOffset(verifier, VT_DST) &&
+           verifier.VerifyTable(dst()) &&
+           VerifyOffset(verifier, VT_SIZE) &&
+           verifier.VerifyVector(size()) &&
+           VerifyField<int32_t>(verifier, VT_ORIGIN) &&
+           verifier.EndTable();
+  }
+  RegionT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(RegionT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<Region> Pack(flatbuffers::FlatBufferBuilder &_fbb, const RegionT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct RegionBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_src(flatbuffers::Offset<View> src) {
+    fbb_.AddOffset(Region::VT_SRC, src);
+  }
+  void add_dst(flatbuffers::Offset<View> dst) {
+    fbb_.AddOffset(Region::VT_DST, dst);
+  }
+  void add_size(flatbuffers::Offset<flatbuffers::Vector<int32_t>> size) {
+    fbb_.AddOffset(Region::VT_SIZE, size);
+  }
+  void add_origin(int32_t origin) {
+    fbb_.AddElement<int32_t>(Region::VT_ORIGIN, origin, 0);
+  }
+  explicit RegionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  RegionBuilder &operator=(const RegionBuilder &);
+  flatbuffers::Offset<Region> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Region>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Region> CreateRegion(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<View> src = 0,
+    flatbuffers::Offset<View> dst = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> size = 0,
+    int32_t origin = 0) {
+  RegionBuilder builder_(_fbb);
+  builder_.add_origin(origin);
+  builder_.add_size(size);
+  builder_.add_dst(dst);
+  builder_.add_src(src);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Region> CreateRegionDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<View> src = 0,
+    flatbuffers::Offset<View> dst = 0,
+    const std::vector<int32_t> *size = nullptr,
+    int32_t origin = 0) {
+  auto size__ = size ? _fbb.CreateVector<int32_t>(*size) : 0;
+  return MNN::CreateRegion(
+      _fbb,
+      src,
+      dst,
+      size__,
+      origin);
+}
+
+flatbuffers::Offset<Region> CreateRegion(flatbuffers::FlatBufferBuilder &_fbb, const RegionT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 struct TensorDescribeT : public flatbuffers::NativeTable {
   typedef TensorDescribe TableType;
   std::unique_ptr<BlobT> blob;
   int32_t index;
   std::string name;
+  std::vector<std::unique_ptr<RegionT>> regions;
   TensorDescribeT()
       : index(0) {
   }
@@ -3222,7 +3934,8 @@ struct TensorDescribe FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BLOB = 4,
     VT_INDEX = 6,
-    VT_NAME = 8
+    VT_NAME = 8,
+    VT_REGIONS = 10
   };
   const Blob *blob() const {
     return GetPointer<const Blob *>(VT_BLOB);
@@ -3233,6 +3946,9 @@ struct TensorDescribe FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<Region>> *regions() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Region>> *>(VT_REGIONS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_BLOB) &&
@@ -3240,6 +3956,9 @@ struct TensorDescribe FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int32_t>(verifier, VT_INDEX) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_REGIONS) &&
+           verifier.VerifyVector(regions()) &&
+           verifier.VerifyVectorOfTables(regions()) &&
            verifier.EndTable();
   }
   TensorDescribeT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -3259,6 +3978,9 @@ struct TensorDescribeBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(TensorDescribe::VT_NAME, name);
   }
+  void add_regions(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Region>>> regions) {
+    fbb_.AddOffset(TensorDescribe::VT_REGIONS, regions);
+  }
   explicit TensorDescribeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -3275,8 +3997,10 @@ inline flatbuffers::Offset<TensorDescribe> CreateTensorDescribe(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Blob> blob = 0,
     int32_t index = 0,
-    flatbuffers::Offset<flatbuffers::String> name = 0) {
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Region>>> regions = 0) {
   TensorDescribeBuilder builder_(_fbb);
+  builder_.add_regions(regions);
   builder_.add_name(name);
   builder_.add_index(index);
   builder_.add_blob(blob);
@@ -3287,16 +4011,147 @@ inline flatbuffers::Offset<TensorDescribe> CreateTensorDescribeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Blob> blob = 0,
     int32_t index = 0,
-    const char *name = nullptr) {
+    const char *name = nullptr,
+    const std::vector<flatbuffers::Offset<Region>> *regions = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto regions__ = regions ? _fbb.CreateVector<flatbuffers::Offset<Region>>(*regions) : 0;
   return MNN::CreateTensorDescribe(
       _fbb,
       blob,
       index,
-      name__);
+      name__,
+      regions__);
 }
 
 flatbuffers::Offset<TensorDescribe> CreateTensorDescribe(flatbuffers::FlatBufferBuilder &_fbb, const TensorDescribeT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct SubGraphProtoT : public flatbuffers::NativeTable {
+  typedef SubGraphProto TableType;
+  std::string name;
+  std::vector<int32_t> inputs;
+  std::vector<int32_t> outputs;
+  std::vector<std::string> tensors;
+  std::vector<std::unique_ptr<OpT>> nodes;
+  SubGraphProtoT() {
+  }
+};
+
+struct SubGraphProto FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef SubGraphProtoT NativeTableType;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return SubGraphProtoTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_INPUTS = 6,
+    VT_OUTPUTS = 8,
+    VT_TENSORS = 10,
+    VT_NODES = 12
+  };
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  const flatbuffers::Vector<int32_t> *inputs() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_INPUTS);
+  }
+  const flatbuffers::Vector<int32_t> *outputs() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_OUTPUTS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *tensors() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_TENSORS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<Op>> *nodes() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Op>> *>(VT_NODES);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_INPUTS) &&
+           verifier.VerifyVector(inputs()) &&
+           VerifyOffset(verifier, VT_OUTPUTS) &&
+           verifier.VerifyVector(outputs()) &&
+           VerifyOffset(verifier, VT_TENSORS) &&
+           verifier.VerifyVector(tensors()) &&
+           verifier.VerifyVectorOfStrings(tensors()) &&
+           VerifyOffset(verifier, VT_NODES) &&
+           verifier.VerifyVector(nodes()) &&
+           verifier.VerifyVectorOfTables(nodes()) &&
+           verifier.EndTable();
+  }
+  SubGraphProtoT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(SubGraphProtoT *_o, const flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static flatbuffers::Offset<SubGraphProto> Pack(flatbuffers::FlatBufferBuilder &_fbb, const SubGraphProtoT* _o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct SubGraphProtoBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(SubGraphProto::VT_NAME, name);
+  }
+  void add_inputs(flatbuffers::Offset<flatbuffers::Vector<int32_t>> inputs) {
+    fbb_.AddOffset(SubGraphProto::VT_INPUTS, inputs);
+  }
+  void add_outputs(flatbuffers::Offset<flatbuffers::Vector<int32_t>> outputs) {
+    fbb_.AddOffset(SubGraphProto::VT_OUTPUTS, outputs);
+  }
+  void add_tensors(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> tensors) {
+    fbb_.AddOffset(SubGraphProto::VT_TENSORS, tensors);
+  }
+  void add_nodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Op>>> nodes) {
+    fbb_.AddOffset(SubGraphProto::VT_NODES, nodes);
+  }
+  explicit SubGraphProtoBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  SubGraphProtoBuilder &operator=(const SubGraphProtoBuilder &);
+  flatbuffers::Offset<SubGraphProto> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<SubGraphProto>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SubGraphProto> CreateSubGraphProto(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> inputs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> outputs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> tensors = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Op>>> nodes = 0) {
+  SubGraphProtoBuilder builder_(_fbb);
+  builder_.add_nodes(nodes);
+  builder_.add_tensors(tensors);
+  builder_.add_outputs(outputs);
+  builder_.add_inputs(inputs);
+  builder_.add_name(name);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SubGraphProto> CreateSubGraphProtoDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const std::vector<int32_t> *inputs = nullptr,
+    const std::vector<int32_t> *outputs = nullptr,
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *tensors = nullptr,
+    const std::vector<flatbuffers::Offset<Op>> *nodes = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto inputs__ = inputs ? _fbb.CreateVector<int32_t>(*inputs) : 0;
+  auto outputs__ = outputs ? _fbb.CreateVector<int32_t>(*outputs) : 0;
+  auto tensors__ = tensors ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*tensors) : 0;
+  auto nodes__ = nodes ? _fbb.CreateVector<flatbuffers::Offset<Op>>(*nodes) : 0;
+  return MNN::CreateSubGraphProto(
+      _fbb,
+      name__,
+      inputs__,
+      outputs__,
+      tensors__,
+      nodes__);
+}
+
+flatbuffers::Offset<SubGraphProto> CreateSubGraphProto(flatbuffers::FlatBufferBuilder &_fbb, const SubGraphProtoT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct NetT : public flatbuffers::NativeTable {
   typedef Net TableType;
@@ -3310,6 +4165,7 @@ struct NetT : public flatbuffers::NativeTable {
   std::vector<std::string> tensorName;
   int32_t tensorNumber;
   Usage usage;
+  std::vector<std::unique_ptr<SubGraphProtoT>> subgraphs;
   NetT()
       : preferForwardType(ForwardType_CPU),
         sourceType(NetSource_CAFFE),
@@ -3333,7 +4189,8 @@ struct Net FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_SOURCETYPE = 16,
     VT_TENSORNAME = 18,
     VT_TENSORNUMBER = 20,
-    VT_USAGE = 22
+    VT_USAGE = 22,
+    VT_SUBGRAPHS = 24
   };
   const flatbuffers::String *bizCode() const {
     return GetPointer<const flatbuffers::String *>(VT_BIZCODE);
@@ -3365,6 +4222,9 @@ struct Net FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   Usage usage() const {
     return static_cast<Usage>(GetField<int8_t>(VT_USAGE, 0));
   }
+  const flatbuffers::Vector<flatbuffers::Offset<SubGraphProto>> *subgraphs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SubGraphProto>> *>(VT_SUBGRAPHS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_BIZCODE) &&
@@ -3387,6 +4247,9 @@ struct Net FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVectorOfStrings(tensorName()) &&
            VerifyField<int32_t>(verifier, VT_TENSORNUMBER) &&
            VerifyField<int8_t>(verifier, VT_USAGE) &&
+           VerifyOffset(verifier, VT_SUBGRAPHS) &&
+           verifier.VerifyVector(subgraphs()) &&
+           verifier.VerifyVectorOfTables(subgraphs()) &&
            verifier.EndTable();
   }
   NetT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -3427,6 +4290,9 @@ struct NetBuilder {
   void add_usage(Usage usage) {
     fbb_.AddElement<int8_t>(Net::VT_USAGE, static_cast<int8_t>(usage), 0);
   }
+  void add_subgraphs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SubGraphProto>>> subgraphs) {
+    fbb_.AddOffset(Net::VT_SUBGRAPHS, subgraphs);
+  }
   explicit NetBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -3450,8 +4316,10 @@ inline flatbuffers::Offset<Net> CreateNet(
     NetSource sourceType = NetSource_CAFFE,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> tensorName = 0,
     int32_t tensorNumber = 0,
-    Usage usage = Usage_INFERENCE) {
+    Usage usage = Usage_INFERENCE,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SubGraphProto>>> subgraphs = 0) {
   NetBuilder builder_(_fbb);
+  builder_.add_subgraphs(subgraphs);
   builder_.add_tensorNumber(tensorNumber);
   builder_.add_tensorName(tensorName);
   builder_.add_outputName(outputName);
@@ -3476,12 +4344,14 @@ inline flatbuffers::Offset<Net> CreateNetDirect(
     NetSource sourceType = NetSource_CAFFE,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *tensorName = nullptr,
     int32_t tensorNumber = 0,
-    Usage usage = Usage_INFERENCE) {
+    Usage usage = Usage_INFERENCE,
+    const std::vector<flatbuffers::Offset<SubGraphProto>> *subgraphs = nullptr) {
   auto bizCode__ = bizCode ? _fbb.CreateString(bizCode) : 0;
   auto extraTensorDescribe__ = extraTensorDescribe ? _fbb.CreateVector<flatbuffers::Offset<TensorDescribe>>(*extraTensorDescribe) : 0;
   auto oplists__ = oplists ? _fbb.CreateVector<flatbuffers::Offset<Op>>(*oplists) : 0;
   auto outputName__ = outputName ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*outputName) : 0;
   auto tensorName__ = tensorName ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*tensorName) : 0;
+  auto subgraphs__ = subgraphs ? _fbb.CreateVector<flatbuffers::Offset<SubGraphProto>>(*subgraphs) : 0;
   return MNN::CreateNet(
       _fbb,
       bizCode__,
@@ -3493,7 +4363,8 @@ inline flatbuffers::Offset<Net> CreateNetDirect(
       sourceType,
       tensorName__,
       tensorNumber,
-      usage);
+      usage,
+      subgraphs__);
 }
 
 flatbuffers::Offset<Net> CreateNet(flatbuffers::FlatBufferBuilder &_fbb, const NetT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -3508,7 +4379,7 @@ inline void Plugin::UnPackTo(PluginT *_o, const flatbuffers::resolver_function_t
   (void)_o;
   (void)_resolver;
   { auto _e = type(); if (_e) _o->type = _e->str(); };
-  { auto _e = buffer(); if (_e) { _o->buffer.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->buffer[_i] = std::unique_ptr<BlobT>(_e->Get(_i)->UnPack(_resolver)); } } };
+  { auto _e = attr(); if (_e) { _o->attr.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->attr[_i] = std::unique_ptr<AttributeT>(_e->Get(_i)->UnPack(_resolver)); } } };
 }
 
 inline flatbuffers::Offset<Plugin> Plugin::Pack(flatbuffers::FlatBufferBuilder &_fbb, const PluginT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -3520,11 +4391,11 @@ inline flatbuffers::Offset<Plugin> CreatePlugin(flatbuffers::FlatBufferBuilder &
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const PluginT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _type = _o->type.empty() ? 0 : _fbb.CreateString(_o->type);
-  auto _buffer = _o->buffer.size() ? _fbb.CreateVector<flatbuffers::Offset<Blob>> (_o->buffer.size(), [](size_t i, _VectorArgs *__va) { return CreateBlob(*__va->__fbb, __va->__o->buffer[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _attr = _o->attr.size() ? _fbb.CreateVector<flatbuffers::Offset<Attribute>> (_o->attr.size(), [](size_t i, _VectorArgs *__va) { return CreateAttribute(*__va->__fbb, __va->__o->attr[i].get(), __va->__rehasher); }, &_va ) : 0;
   return MNN::CreatePlugin(
       _fbb,
       _type,
-      _buffer);
+      _attr);
 }
 
 inline ExtraT *Extra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -3560,6 +4431,105 @@ inline flatbuffers::Offset<Extra> CreateExtra(flatbuffers::FlatBufferBuilder &_f
       _engine,
       _info,
       _attr);
+}
+
+inline StringVecT *StringVec::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new StringVecT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void StringVec::UnPackTo(StringVecT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = data(); if (_e) { _o->data.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->data[_i] = _e->Get(_i)->str(); } } };
+}
+
+inline flatbuffers::Offset<StringVec> StringVec::Pack(flatbuffers::FlatBufferBuilder &_fbb, const StringVecT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateStringVec(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<StringVec> CreateStringVec(flatbuffers::FlatBufferBuilder &_fbb, const StringVecT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const StringVecT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _data = _o->data.size() ? _fbb.CreateVectorOfStrings(_o->data) : 0;
+  return MNN::CreateStringVec(
+      _fbb,
+      _data);
+}
+
+inline WhileParamT *WhileParam::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new WhileParamT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void WhileParam::UnPackTo(WhileParamT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = cond_graph(); if (_e) _o->cond_graph = _e->str(); };
+  { auto _e = body_graph(); if (_e) _o->body_graph = _e->str(); };
+  { auto _e = aliases_inputs(); if (_e) { _o->aliases_inputs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->aliases_inputs[_i] = std::unique_ptr<StringVecT>(_e->Get(_i)->UnPack(_resolver)); } } };
+  { auto _e = aliases_outputs(); if (_e) { _o->aliases_outputs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->aliases_outputs[_i] = _e->Get(_i)->str(); } } };
+  { auto _e = aliases_updates(); if (_e) { _o->aliases_updates.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->aliases_updates[_i] = std::unique_ptr<StringVecT>(_e->Get(_i)->UnPack(_resolver)); } } };
+}
+
+inline flatbuffers::Offset<WhileParam> WhileParam::Pack(flatbuffers::FlatBufferBuilder &_fbb, const WhileParamT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateWhileParam(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<WhileParam> CreateWhileParam(flatbuffers::FlatBufferBuilder &_fbb, const WhileParamT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const WhileParamT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _cond_graph = _o->cond_graph.empty() ? 0 : _fbb.CreateString(_o->cond_graph);
+  auto _body_graph = _o->body_graph.empty() ? 0 : _fbb.CreateString(_o->body_graph);
+  auto _aliases_inputs = _o->aliases_inputs.size() ? _fbb.CreateVector<flatbuffers::Offset<StringVec>> (_o->aliases_inputs.size(), [](size_t i, _VectorArgs *__va) { return CreateStringVec(*__va->__fbb, __va->__o->aliases_inputs[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _aliases_outputs = _o->aliases_outputs.size() ? _fbb.CreateVectorOfStrings(_o->aliases_outputs) : 0;
+  auto _aliases_updates = _o->aliases_updates.size() ? _fbb.CreateVector<flatbuffers::Offset<StringVec>> (_o->aliases_updates.size(), [](size_t i, _VectorArgs *__va) { return CreateStringVec(*__va->__fbb, __va->__o->aliases_updates[i].get(), __va->__rehasher); }, &_va ) : 0;
+  return MNN::CreateWhileParam(
+      _fbb,
+      _cond_graph,
+      _body_graph,
+      _aliases_inputs,
+      _aliases_outputs,
+      _aliases_updates);
+}
+
+inline IfParamT *IfParam::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new IfParamT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void IfParam::UnPackTo(IfParamT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = then_graph(); if (_e) _o->then_graph = _e->str(); };
+  { auto _e = else_graph(); if (_e) _o->else_graph = _e->str(); };
+  { auto _e = aliases_inputs(); if (_e) { _o->aliases_inputs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->aliases_inputs[_i] = std::unique_ptr<StringVecT>(_e->Get(_i)->UnPack(_resolver)); } } };
+  { auto _e = aliases_outputs(); if (_e) { _o->aliases_outputs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->aliases_outputs[_i] = std::unique_ptr<StringVecT>(_e->Get(_i)->UnPack(_resolver)); } } };
+}
+
+inline flatbuffers::Offset<IfParam> IfParam::Pack(flatbuffers::FlatBufferBuilder &_fbb, const IfParamT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateIfParam(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<IfParam> CreateIfParam(flatbuffers::FlatBufferBuilder &_fbb, const IfParamT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const IfParamT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _then_graph = _o->then_graph.empty() ? 0 : _fbb.CreateString(_o->then_graph);
+  auto _else_graph = _o->else_graph.empty() ? 0 : _fbb.CreateString(_o->else_graph);
+  auto _aliases_inputs = _o->aliases_inputs.size() ? _fbb.CreateVector<flatbuffers::Offset<StringVec>> (_o->aliases_inputs.size(), [](size_t i, _VectorArgs *__va) { return CreateStringVec(*__va->__fbb, __va->__o->aliases_inputs[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _aliases_outputs = _o->aliases_outputs.size() ? _fbb.CreateVector<flatbuffers::Offset<StringVec>> (_o->aliases_outputs.size(), [](size_t i, _VectorArgs *__va) { return CreateStringVec(*__va->__fbb, __va->__o->aliases_outputs[i].get(), __va->__rehasher); }, &_va ) : 0;
+  return MNN::CreateIfParam(
+      _fbb,
+      _then_graph,
+      _else_graph,
+      _aliases_inputs,
+      _aliases_outputs);
 }
 
 inline OpT *Op::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -3606,6 +4576,70 @@ inline flatbuffers::Offset<Op> CreateOp(flatbuffers::FlatBufferBuilder &_fbb, co
       _defaultDimentionFormat);
 }
 
+inline ViewT *View::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new ViewT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void View::UnPackTo(ViewT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = offset(); _o->offset = _e; };
+  { auto _e = stride(); if (_e) { _o->stride.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->stride[_i] = _e->Get(_i); } } };
+}
+
+inline flatbuffers::Offset<View> View::Pack(flatbuffers::FlatBufferBuilder &_fbb, const ViewT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateView(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<View> CreateView(flatbuffers::FlatBufferBuilder &_fbb, const ViewT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const ViewT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _offset = _o->offset;
+  auto _stride = _o->stride.size() ? _fbb.CreateVector(_o->stride) : 0;
+  return MNN::CreateView(
+      _fbb,
+      _offset,
+      _stride);
+}
+
+inline RegionT *Region::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new RegionT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void Region::UnPackTo(RegionT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = src(); if (_e) _o->src = std::unique_ptr<ViewT>(_e->UnPack(_resolver)); };
+  { auto _e = dst(); if (_e) _o->dst = std::unique_ptr<ViewT>(_e->UnPack(_resolver)); };
+  { auto _e = size(); if (_e) { _o->size.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->size[_i] = _e->Get(_i); } } };
+  { auto _e = origin(); _o->origin = _e; };
+}
+
+inline flatbuffers::Offset<Region> Region::Pack(flatbuffers::FlatBufferBuilder &_fbb, const RegionT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateRegion(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<Region> CreateRegion(flatbuffers::FlatBufferBuilder &_fbb, const RegionT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const RegionT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _src = _o->src ? CreateView(_fbb, _o->src.get(), _rehasher) : 0;
+  auto _dst = _o->dst ? CreateView(_fbb, _o->dst.get(), _rehasher) : 0;
+  auto _size = _o->size.size() ? _fbb.CreateVector(_o->size) : 0;
+  auto _origin = _o->origin;
+  return MNN::CreateRegion(
+      _fbb,
+      _src,
+      _dst,
+      _size,
+      _origin);
+}
+
 inline TensorDescribeT *TensorDescribe::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
   auto _o = new TensorDescribeT();
   UnPackTo(_o, _resolver);
@@ -3618,6 +4652,7 @@ inline void TensorDescribe::UnPackTo(TensorDescribeT *_o, const flatbuffers::res
   { auto _e = blob(); if (_e) _o->blob = std::unique_ptr<BlobT>(_e->UnPack(_resolver)); };
   { auto _e = index(); _o->index = _e; };
   { auto _e = name(); if (_e) _o->name = _e->str(); };
+  { auto _e = regions(); if (_e) { _o->regions.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->regions[_i] = std::unique_ptr<RegionT>(_e->Get(_i)->UnPack(_resolver)); } } };
 }
 
 inline flatbuffers::Offset<TensorDescribe> TensorDescribe::Pack(flatbuffers::FlatBufferBuilder &_fbb, const TensorDescribeT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -3631,11 +4666,51 @@ inline flatbuffers::Offset<TensorDescribe> CreateTensorDescribe(flatbuffers::Fla
   auto _blob = _o->blob ? CreateBlob(_fbb, _o->blob.get(), _rehasher) : 0;
   auto _index = _o->index;
   auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
+  auto _regions = _o->regions.size() ? _fbb.CreateVector<flatbuffers::Offset<Region>> (_o->regions.size(), [](size_t i, _VectorArgs *__va) { return CreateRegion(*__va->__fbb, __va->__o->regions[i].get(), __va->__rehasher); }, &_va ) : 0;
   return MNN::CreateTensorDescribe(
       _fbb,
       _blob,
       _index,
-      _name);
+      _name,
+      _regions);
+}
+
+inline SubGraphProtoT *SubGraphProto::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = new SubGraphProtoT();
+  UnPackTo(_o, _resolver);
+  return _o;
+}
+
+inline void SubGraphProto::UnPackTo(SubGraphProtoT *_o, const flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = name(); if (_e) _o->name = _e->str(); };
+  { auto _e = inputs(); if (_e) { _o->inputs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inputs[_i] = _e->Get(_i); } } };
+  { auto _e = outputs(); if (_e) { _o->outputs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->outputs[_i] = _e->Get(_i); } } };
+  { auto _e = tensors(); if (_e) { _o->tensors.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->tensors[_i] = _e->Get(_i)->str(); } } };
+  { auto _e = nodes(); if (_e) { _o->nodes.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->nodes[_i] = std::unique_ptr<OpT>(_e->Get(_i)->UnPack(_resolver)); } } };
+}
+
+inline flatbuffers::Offset<SubGraphProto> SubGraphProto::Pack(flatbuffers::FlatBufferBuilder &_fbb, const SubGraphProtoT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateSubGraphProto(_fbb, _o, _rehasher);
+}
+
+inline flatbuffers::Offset<SubGraphProto> CreateSubGraphProto(flatbuffers::FlatBufferBuilder &_fbb, const SubGraphProtoT *_o, const flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const SubGraphProtoT* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
+  auto _inputs = _o->inputs.size() ? _fbb.CreateVector(_o->inputs) : 0;
+  auto _outputs = _o->outputs.size() ? _fbb.CreateVector(_o->outputs) : 0;
+  auto _tensors = _o->tensors.size() ? _fbb.CreateVectorOfStrings(_o->tensors) : 0;
+  auto _nodes = _o->nodes.size() ? _fbb.CreateVector<flatbuffers::Offset<Op>> (_o->nodes.size(), [](size_t i, _VectorArgs *__va) { return CreateOp(*__va->__fbb, __va->__o->nodes[i].get(), __va->__rehasher); }, &_va ) : 0;
+  return MNN::CreateSubGraphProto(
+      _fbb,
+      _name,
+      _inputs,
+      _outputs,
+      _tensors,
+      _nodes);
 }
 
 inline NetT *Net::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -3657,6 +4732,7 @@ inline void Net::UnPackTo(NetT *_o, const flatbuffers::resolver_function_t *_res
   { auto _e = tensorName(); if (_e) { _o->tensorName.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->tensorName[_i] = _e->Get(_i)->str(); } } };
   { auto _e = tensorNumber(); _o->tensorNumber = _e; };
   { auto _e = usage(); _o->usage = _e; };
+  { auto _e = subgraphs(); if (_e) { _o->subgraphs.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->subgraphs[_i] = std::unique_ptr<SubGraphProtoT>(_e->Get(_i)->UnPack(_resolver)); } } };
 }
 
 inline flatbuffers::Offset<Net> Net::Pack(flatbuffers::FlatBufferBuilder &_fbb, const NetT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -3677,6 +4753,7 @@ inline flatbuffers::Offset<Net> CreateNet(flatbuffers::FlatBufferBuilder &_fbb, 
   auto _tensorName = _o->tensorName.size() ? _fbb.CreateVectorOfStrings(_o->tensorName) : 0;
   auto _tensorNumber = _o->tensorNumber;
   auto _usage = _o->usage;
+  auto _subgraphs = _o->subgraphs.size() ? _fbb.CreateVector<flatbuffers::Offset<SubGraphProto>> (_o->subgraphs.size(), [](size_t i, _VectorArgs *__va) { return CreateSubGraphProto(*__va->__fbb, __va->__o->subgraphs[i].get(), __va->__rehasher); }, &_va ) : 0;
   return MNN::CreateNet(
       _fbb,
       _bizCode,
@@ -3688,7 +4765,8 @@ inline flatbuffers::Offset<Net> CreateNet(flatbuffers::FlatBufferBuilder &_fbb, 
       _sourceType,
       _tensorName,
       _tensorNumber,
-      _usage);
+      _usage,
+      _subgraphs);
 }
 
 inline bool VerifyOpParameter(flatbuffers::Verifier &verifier, const void *obj, OpParameter type) {
@@ -4030,6 +5108,22 @@ inline bool VerifyOpParameter(flatbuffers::Verifier &verifier, const void *obj, 
     }
     case OpParameter_PadParam: {
       auto ptr = reinterpret_cast<const PadParam *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case OpParameter_WhileParam: {
+      auto ptr = reinterpret_cast<const WhileParam *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case OpParameter_IfParam: {
+      auto ptr = reinterpret_cast<const IfParam *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case OpParameter_RandomUniform: {
+      auto ptr = reinterpret_cast<const RandomUniform *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case OpParameter_LayerNorm: {
+      auto ptr = reinterpret_cast<const LayerNorm *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return false;
@@ -4386,6 +5480,22 @@ inline void *OpParameterUnion::UnPack(const void *obj, OpParameter type, const f
       auto ptr = reinterpret_cast<const PadParam *>(obj);
       return ptr->UnPack(resolver);
     }
+    case OpParameter_WhileParam: {
+      auto ptr = reinterpret_cast<const WhileParam *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    case OpParameter_IfParam: {
+      auto ptr = reinterpret_cast<const IfParam *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    case OpParameter_RandomUniform: {
+      auto ptr = reinterpret_cast<const RandomUniform *>(obj);
+      return ptr->UnPack(resolver);
+    }
+    case OpParameter_LayerNorm: {
+      auto ptr = reinterpret_cast<const LayerNorm *>(obj);
+      return ptr->UnPack(resolver);
+    }
     default: return nullptr;
   }
 }
@@ -4728,6 +5838,22 @@ inline flatbuffers::Offset<void> OpParameterUnion::Pack(flatbuffers::FlatBufferB
       auto ptr = reinterpret_cast<const PadParamT *>(value);
       return CreatePadParam(_fbb, ptr, _rehasher).Union();
     }
+    case OpParameter_WhileParam: {
+      auto ptr = reinterpret_cast<const WhileParamT *>(value);
+      return CreateWhileParam(_fbb, ptr, _rehasher).Union();
+    }
+    case OpParameter_IfParam: {
+      auto ptr = reinterpret_cast<const IfParamT *>(value);
+      return CreateIfParam(_fbb, ptr, _rehasher).Union();
+    }
+    case OpParameter_RandomUniform: {
+      auto ptr = reinterpret_cast<const RandomUniformT *>(value);
+      return CreateRandomUniform(_fbb, ptr, _rehasher).Union();
+    }
+    case OpParameter_LayerNorm: {
+      auto ptr = reinterpret_cast<const LayerNormT *>(value);
+      return CreateLayerNorm(_fbb, ptr, _rehasher).Union();
+    }
     default: return 0;
   }
 }
@@ -5068,6 +6194,22 @@ inline OpParameterUnion::OpParameterUnion(const OpParameterUnion &u) FLATBUFFERS
     }
     case OpParameter_PadParam: {
       value = new PadParamT(*reinterpret_cast<PadParamT *>(u.value));
+      break;
+    }
+    case OpParameter_WhileParam: {
+      FLATBUFFERS_ASSERT(false);  // WhileParamT not copyable.
+      break;
+    }
+    case OpParameter_IfParam: {
+      FLATBUFFERS_ASSERT(false);  // IfParamT not copyable.
+      break;
+    }
+    case OpParameter_RandomUniform: {
+      value = new RandomUniformT(*reinterpret_cast<RandomUniformT *>(u.value));
+      break;
+    }
+    case OpParameter_LayerNorm: {
+      value = new LayerNormT(*reinterpret_cast<LayerNormT *>(u.value));
       break;
     }
     default:
@@ -5497,6 +6639,26 @@ inline void OpParameterUnion::Reset() {
       delete ptr;
       break;
     }
+    case OpParameter_WhileParam: {
+      auto ptr = reinterpret_cast<WhileParamT *>(value);
+      delete ptr;
+      break;
+    }
+    case OpParameter_IfParam: {
+      auto ptr = reinterpret_cast<IfParamT *>(value);
+      delete ptr;
+      break;
+    }
+    case OpParameter_RandomUniform: {
+      auto ptr = reinterpret_cast<RandomUniformT *>(value);
+      delete ptr;
+      break;
+    }
+    case OpParameter_LayerNorm: {
+      auto ptr = reinterpret_cast<LayerNormT *>(value);
+      delete ptr;
+      break;
+    }
     default: break;
   }
   value = nullptr;
@@ -5649,12 +6811,17 @@ inline const flatbuffers::TypeTable *OpTypeTypeTable() {
     { flatbuffers::ET_INT, 0, 0 },
     { flatbuffers::ET_INT, 0, 0 },
     { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 },
+    { flatbuffers::ET_INT, 0, 0 },
     { flatbuffers::ET_INT, 0, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     OpTypeTypeTable
   };
-  static const int64_t values[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 128, 129, 130, 131, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 512, 513, 514, 515, 516, 517, 518 };
+  static const int64_t values[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 128, 129, 130, 131, 132, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 512, 513, 514, 515, 516, 517, 518, 600, 601, 603 };
   static const char * const names[] = {
     "AbsVal",
     "QuantizedAdd",
@@ -5778,11 +6945,12 @@ inline const flatbuffers::TypeTable *OpTypeTypeTable() {
     "OneHot",
     "BroadcastTo",
     "Dilation2D",
-    "MaxLayerCount",
+    "Raster",
     "ConvertTensor",
     "ArgMin",
     "LinSpace",
-    "PLUGIN",
+    "RandomUniform",
+    "Plugin",
     "Select",
     "ZerosLike",
     "Broastcast",
@@ -5794,16 +6962,20 @@ inline const flatbuffers::TypeTable *OpTypeTypeTable() {
     "Conv2DBackPropFilter",
     "TrainableParam",
     "BatchNorm",
+    "ZeroGrad",
     "Extra",
     "ConvInt8",
     "Int8ToFloat",
     "DepthwiseConvInt8",
     "PoolInt8",
     "FloatToInt8",
-    "EltwiseInt8"
+    "EltwiseInt8",
+    "While",
+    "If",
+    "LayerNorm"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 145, type_codes, type_refs, values, names
+    flatbuffers::ST_ENUM, 150, type_codes, type_refs, values, names
   };
   return &tt;
 }
@@ -5894,7 +7066,11 @@ inline const flatbuffers::TypeTable *OpParameterTypeTable() {
     { flatbuffers::ET_SEQUENCE, 0, 80 },
     { flatbuffers::ET_SEQUENCE, 0, 81 },
     { flatbuffers::ET_SEQUENCE, 0, 82 },
-    { flatbuffers::ET_SEQUENCE, 0, 83 }
+    { flatbuffers::ET_SEQUENCE, 0, 83 },
+    { flatbuffers::ET_SEQUENCE, 0, 84 },
+    { flatbuffers::ET_SEQUENCE, 0, 85 },
+    { flatbuffers::ET_SEQUENCE, 0, 86 },
+    { flatbuffers::ET_SEQUENCE, 0, 87 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     QuantizedAddTypeTable,
@@ -5980,7 +7156,11 @@ inline const flatbuffers::TypeTable *OpParameterTypeTable() {
     ELUTypeTable,
     DetectionPostProcessParamTypeTable,
     OneHotParamTypeTable,
-    PadParamTypeTable
+    PadParamTypeTable,
+    WhileParamTypeTable,
+    IfParamTypeTable,
+    RandomUniformTypeTable,
+    LayerNormTypeTable
   };
   static const char * const names[] = {
     "NONE",
@@ -6067,10 +7247,14 @@ inline const flatbuffers::TypeTable *OpParameterTypeTable() {
     "ELU",
     "DetectionPostProcessParam",
     "OneHotParam",
-    "PadParam"
+    "PadParam",
+    "WhileParam",
+    "IfParam",
+    "RandomUniform",
+    "LayerNorm"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_UNION, 85, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_UNION, 89, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -6102,6 +7286,7 @@ inline const flatbuffers::TypeTable *ForwardTypeTypeTable() {
 inline const flatbuffers::TypeTable *UsageTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
@@ -6109,10 +7294,11 @@ inline const flatbuffers::TypeTable *UsageTypeTable() {
   };
   static const char * const names[] = {
     "INFERENCE",
-    "TRAIN"
+    "TRAIN",
+    "INFERENCE_STATIC"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -6123,11 +7309,11 @@ inline const flatbuffers::TypeTable *PluginTypeTable() {
     { flatbuffers::ET_SEQUENCE, 1, 0 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    BlobTypeTable
+    AttributeTypeTable
   };
   static const char * const names[] = {
     "type",
-    "buffer"
+    "attr"
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, names
@@ -6150,6 +7336,65 @@ inline const flatbuffers::TypeTable *ExtraTypeTable() {
     "engine",
     "info",
     "attr"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *StringVecTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 1, -1 }
+  };
+  static const char * const names[] = {
+    "data"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *WhileParamTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 },
+    { flatbuffers::ET_STRING, 1, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    StringVecTypeTable
+  };
+  static const char * const names[] = {
+    "cond_graph",
+    "body_graph",
+    "aliases_inputs",
+    "aliases_outputs",
+    "aliases_updates"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *IfParamTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    StringVecTypeTable
+  };
+  static const char * const names[] = {
+    "then_graph",
+    "else_graph",
+    "aliases_inputs",
+    "aliases_outputs"
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
@@ -6187,22 +7432,86 @@ inline const flatbuffers::TypeTable *OpTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *ViewTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 1, -1 }
+  };
+  static const char * const names[] = {
+    "offset",
+    "stride"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *RegionTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_INT, 1, -1 },
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    ViewTypeTable
+  };
+  static const char * const names[] = {
+    "src",
+    "dst",
+    "size",
+    "origin"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *TensorDescribeTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_STRING, 0, -1 }
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
-    BlobTypeTable
+    BlobTypeTable,
+    RegionTypeTable
   };
   static const char * const names[] = {
     "blob",
     "index",
-    "name"
+    "name",
+    "regions"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *SubGraphProtoTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_STRING, 0, -1 },
+    { flatbuffers::ET_INT, 1, -1 },
+    { flatbuffers::ET_INT, 1, -1 },
+    { flatbuffers::ET_STRING, 1, -1 },
+    { flatbuffers::ET_SEQUENCE, 1, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    OpTypeTable
+  };
+  static const char * const names[] = {
+    "name",
+    "inputs",
+    "outputs",
+    "tensors",
+    "nodes"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -6218,7 +7527,8 @@ inline const flatbuffers::TypeTable *NetTypeTable() {
     { flatbuffers::ET_CHAR, 0, 4 },
     { flatbuffers::ET_STRING, 1, -1 },
     { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_CHAR, 0, 5 }
+    { flatbuffers::ET_CHAR, 0, 5 },
+    { flatbuffers::ET_SEQUENCE, 1, 6 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     TensorDescribeTypeTable,
@@ -6226,7 +7536,8 @@ inline const flatbuffers::TypeTable *NetTypeTable() {
     OpTypeTable,
     ForwardTypeTypeTable,
     NetSourceTypeTable,
-    UsageTypeTable
+    UsageTypeTable,
+    SubGraphProtoTypeTable
   };
   static const char * const names[] = {
     "bizCode",
@@ -6238,10 +7549,11 @@ inline const flatbuffers::TypeTable *NetTypeTable() {
     "sourceType",
     "tensorName",
     "tensorNumber",
-    "usage"
+    "usage",
+    "subgraphs"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 10, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

@@ -4,7 +4,6 @@
 #ifndef FLATBUFFERS_GENERATED_CAFFEOP_MNN_H_
 #define FLATBUFFERS_GENERATED_CAFFEOP_MNN_H_
 
-#include "flatbuffers/flatbuffers.h"
 
 #include "Tensor_generated.h"
 #include "Type_generated.h"
@@ -205,8 +204,38 @@ inline const char * const *EnumNamesPadMode() {
 
 inline const char *EnumNamePadMode(PadMode e) {
   if (e < PadMode_CAFFE || e > PadMode_SAME) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesPadMode()[index];
+}
+
+enum QuantizeAlgo {
+  QuantizeAlgo_DEFAULT = 0,
+  QuantizeAlgo_OVERFLOW_AWARE = 1,
+  QuantizeAlgo_MIN = QuantizeAlgo_DEFAULT,
+  QuantizeAlgo_MAX = QuantizeAlgo_OVERFLOW_AWARE
+};
+
+inline const QuantizeAlgo (&EnumValuesQuantizeAlgo())[2] {
+  static const QuantizeAlgo values[] = {
+    QuantizeAlgo_DEFAULT,
+    QuantizeAlgo_OVERFLOW_AWARE
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesQuantizeAlgo() {
+  static const char * const names[] = {
+    "DEFAULT",
+    "OVERFLOW_AWARE",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameQuantizeAlgo(QuantizeAlgo e) {
+  if (e < QuantizeAlgo_DEFAULT || e > QuantizeAlgo_OVERFLOW_AWARE) return "";
+  const size_t index = static_cast<int>(e);
+  return EnumNamesQuantizeAlgo()[index];
 }
 
 enum PoolType {
@@ -235,7 +264,7 @@ inline const char * const *EnumNamesPoolType() {
 
 inline const char *EnumNamePoolType(PoolType e) {
   if (e < PoolType_MAXPOOL || e > PoolType_AVEPOOL) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesPoolType()[index];
 }
 
@@ -268,8 +297,41 @@ inline const char * const *EnumNamesPoolPadType() {
 
 inline const char *EnumNamePoolPadType(PoolPadType e) {
   if (e < PoolPadType_CAFFE || e > PoolPadType_SAME) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesPoolPadType()[index];
+}
+
+enum AvgPoolCountType {
+  AvgPoolCountType_DEFAULT = 0,
+  AvgPoolCountType_INCLUDE_PADDING = 1,
+  AvgPoolCountType_EXCLUDE_PADDING = 2,
+  AvgPoolCountType_MIN = AvgPoolCountType_DEFAULT,
+  AvgPoolCountType_MAX = AvgPoolCountType_EXCLUDE_PADDING
+};
+
+inline const AvgPoolCountType (&EnumValuesAvgPoolCountType())[3] {
+  static const AvgPoolCountType values[] = {
+    AvgPoolCountType_DEFAULT,
+    AvgPoolCountType_INCLUDE_PADDING,
+    AvgPoolCountType_EXCLUDE_PADDING
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesAvgPoolCountType() {
+  static const char * const names[] = {
+    "DEFAULT",
+    "INCLUDE_PADDING",
+    "EXCLUDE_PADDING",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameAvgPoolCountType(AvgPoolCountType e) {
+  if (e < AvgPoolCountType_DEFAULT || e > AvgPoolCountType_EXCLUDE_PADDING) return "";
+  const size_t index = static_cast<int>(e);
+  return EnumNamesAvgPoolCountType()[index];
 }
 
 enum EltwiseType {
@@ -304,8 +366,53 @@ inline const char * const *EnumNamesEltwiseType() {
 
 inline const char *EnumNameEltwiseType(EltwiseType e) {
   if (e < EltwiseType_PROD || e > EltwiseType_SUB) return "";
-  const size_t index = static_cast<size_t>(e);
+  const size_t index = static_cast<int>(e);
   return EnumNamesEltwiseType()[index];
+}
+
+enum CoordinateTransformationMode {
+  CoordinateTransformationMode_NotSet = 0,
+  CoordinateTransformationMode_AlignCorners = 1,
+  CoordinateTransformationMode_HalfPixels = 2,
+  CoordinateTransformationMode_PytorchHalfPixels = 3,
+  CoordinateTransformationMode_Asymmetric = 4,
+  CoordinateTransformationMode_TensorflowHalfPixels = 5,
+  CoordinateTransformationMode_TensorflowCropAndResize = 6,
+  CoordinateTransformationMode_MIN = CoordinateTransformationMode_NotSet,
+  CoordinateTransformationMode_MAX = CoordinateTransformationMode_TensorflowCropAndResize
+};
+
+inline const CoordinateTransformationMode (&EnumValuesCoordinateTransformationMode())[7] {
+  static const CoordinateTransformationMode values[] = {
+    CoordinateTransformationMode_NotSet,
+    CoordinateTransformationMode_AlignCorners,
+    CoordinateTransformationMode_HalfPixels,
+    CoordinateTransformationMode_PytorchHalfPixels,
+    CoordinateTransformationMode_Asymmetric,
+    CoordinateTransformationMode_TensorflowHalfPixels,
+    CoordinateTransformationMode_TensorflowCropAndResize
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesCoordinateTransformationMode() {
+  static const char * const names[] = {
+    "NotSet",
+    "AlignCorners",
+    "HalfPixels",
+    "PytorchHalfPixels",
+    "Asymmetric",
+    "TensorflowHalfPixels",
+    "TensorflowCropAndResize",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameCoordinateTransformationMode(CoordinateTransformationMode e) {
+  if (e < CoordinateTransformationMode_NotSet || e > CoordinateTransformationMode_TensorflowCropAndResize) return "";
+  const size_t index = static_cast<int>(e);
+  return EnumNamesCoordinateTransformationMode()[index];
 }
 
 struct Convolution2DCommonT : public flatbuffers::NativeTable {
@@ -324,6 +431,8 @@ struct Convolution2DCommonT : public flatbuffers::NativeTable {
   int32_t inputCount;
   bool relu;
   bool relu6;
+  std::vector<int32_t> pads;
+  std::vector<int32_t> outPads;
   Convolution2DCommonT()
       : padX(0),
         padY(0),
@@ -361,7 +470,9 @@ struct Convolution2DCommon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
     VT_OUTPUTCOUNT = 24,
     VT_INPUTCOUNT = 26,
     VT_RELU = 28,
-    VT_RELU6 = 30
+    VT_RELU6 = 30,
+    VT_PADS = 32,
+    VT_OUTPADS = 34
   };
   int32_t padX() const {
     return GetField<int32_t>(VT_PADX, 0);
@@ -405,6 +516,12 @@ struct Convolution2DCommon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
   bool relu6() const {
     return GetField<uint8_t>(VT_RELU6, 0) != 0;
   }
+  const flatbuffers::Vector<int32_t> *pads() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_PADS);
+  }
+  const flatbuffers::Vector<int32_t> *outPads() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_OUTPADS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_PADX) &&
@@ -421,6 +538,10 @@ struct Convolution2DCommon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
            VerifyField<int32_t>(verifier, VT_INPUTCOUNT) &&
            VerifyField<uint8_t>(verifier, VT_RELU) &&
            VerifyField<uint8_t>(verifier, VT_RELU6) &&
+           VerifyOffset(verifier, VT_PADS) &&
+           verifier.VerifyVector(pads()) &&
+           VerifyOffset(verifier, VT_OUTPADS) &&
+           verifier.VerifyVector(outPads()) &&
            verifier.EndTable();
   }
   Convolution2DCommonT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -473,6 +594,12 @@ struct Convolution2DCommonBuilder {
   void add_relu6(bool relu6) {
     fbb_.AddElement<uint8_t>(Convolution2DCommon::VT_RELU6, static_cast<uint8_t>(relu6), 0);
   }
+  void add_pads(flatbuffers::Offset<flatbuffers::Vector<int32_t>> pads) {
+    fbb_.AddOffset(Convolution2DCommon::VT_PADS, pads);
+  }
+  void add_outPads(flatbuffers::Offset<flatbuffers::Vector<int32_t>> outPads) {
+    fbb_.AddOffset(Convolution2DCommon::VT_OUTPADS, outPads);
+  }
   explicit Convolution2DCommonBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -500,8 +627,12 @@ inline flatbuffers::Offset<Convolution2DCommon> CreateConvolution2DCommon(
     int32_t outputCount = 0,
     int32_t inputCount = 0,
     bool relu = false,
-    bool relu6 = false) {
+    bool relu6 = false,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> pads = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> outPads = 0) {
   Convolution2DCommonBuilder builder_(_fbb);
+  builder_.add_outPads(outPads);
+  builder_.add_pads(pads);
   builder_.add_inputCount(inputCount);
   builder_.add_outputCount(outputCount);
   builder_.add_group(group);
@@ -517,6 +648,46 @@ inline flatbuffers::Offset<Convolution2DCommon> CreateConvolution2DCommon(
   builder_.add_relu(relu);
   builder_.add_padMode(padMode);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Convolution2DCommon> CreateConvolution2DCommonDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t padX = 0,
+    int32_t padY = 0,
+    int32_t kernelX = 1,
+    int32_t kernelY = 1,
+    int32_t strideX = 1,
+    int32_t strideY = 1,
+    int32_t dilateX = 1,
+    int32_t dilateY = 1,
+    PadMode padMode = PadMode_CAFFE,
+    int32_t group = 1,
+    int32_t outputCount = 0,
+    int32_t inputCount = 0,
+    bool relu = false,
+    bool relu6 = false,
+    const std::vector<int32_t> *pads = nullptr,
+    const std::vector<int32_t> *outPads = nullptr) {
+  auto pads__ = pads ? _fbb.CreateVector<int32_t>(*pads) : 0;
+  auto outPads__ = outPads ? _fbb.CreateVector<int32_t>(*outPads) : 0;
+  return MNN::CreateConvolution2DCommon(
+      _fbb,
+      padX,
+      padY,
+      kernelX,
+      kernelY,
+      strideX,
+      strideY,
+      dilateX,
+      dilateY,
+      padMode,
+      group,
+      outputCount,
+      inputCount,
+      relu,
+      relu6,
+      pads__,
+      outPads__);
 }
 
 flatbuffers::Offset<Convolution2DCommon> CreateConvolution2DCommon(flatbuffers::FlatBufferBuilder &_fbb, const Convolution2DCommonT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -915,7 +1086,11 @@ struct QuantizedFloatParamT : public flatbuffers::NativeTable {
   std::vector<int32_t> bias;
   std::vector<float> scale;
   std::vector<float> tensorScale;
-  QuantizedFloatParamT() {
+  QuantizeAlgo method;
+  int32_t nbits;
+  QuantizedFloatParamT()
+      : method(QuantizeAlgo_DEFAULT),
+        nbits(8) {
   }
 };
 
@@ -928,7 +1103,9 @@ struct QuantizedFloatParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
     VT_WEIGHT = 4,
     VT_BIAS = 6,
     VT_SCALE = 8,
-    VT_TENSORSCALE = 10
+    VT_TENSORSCALE = 10,
+    VT_METHOD = 12,
+    VT_NBITS = 14
   };
   const flatbuffers::Vector<int8_t> *weight() const {
     return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_WEIGHT);
@@ -942,6 +1119,12 @@ struct QuantizedFloatParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
   const flatbuffers::Vector<float> *tensorScale() const {
     return GetPointer<const flatbuffers::Vector<float> *>(VT_TENSORSCALE);
   }
+  QuantizeAlgo method() const {
+    return static_cast<QuantizeAlgo>(GetField<int8_t>(VT_METHOD, 0));
+  }
+  int32_t nbits() const {
+    return GetField<int32_t>(VT_NBITS, 8);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WEIGHT) &&
@@ -952,6 +1135,8 @@ struct QuantizedFloatParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table 
            verifier.VerifyVector(scale()) &&
            VerifyOffset(verifier, VT_TENSORSCALE) &&
            verifier.VerifyVector(tensorScale()) &&
+           VerifyField<int8_t>(verifier, VT_METHOD) &&
+           VerifyField<int32_t>(verifier, VT_NBITS) &&
            verifier.EndTable();
   }
   QuantizedFloatParamT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -974,6 +1159,12 @@ struct QuantizedFloatParamBuilder {
   void add_tensorScale(flatbuffers::Offset<flatbuffers::Vector<float>> tensorScale) {
     fbb_.AddOffset(QuantizedFloatParam::VT_TENSORSCALE, tensorScale);
   }
+  void add_method(QuantizeAlgo method) {
+    fbb_.AddElement<int8_t>(QuantizedFloatParam::VT_METHOD, static_cast<int8_t>(method), 0);
+  }
+  void add_nbits(int32_t nbits) {
+    fbb_.AddElement<int32_t>(QuantizedFloatParam::VT_NBITS, nbits, 8);
+  }
   explicit QuantizedFloatParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -991,12 +1182,16 @@ inline flatbuffers::Offset<QuantizedFloatParam> CreateQuantizedFloatParam(
     flatbuffers::Offset<flatbuffers::Vector<int8_t>> weight = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> bias = 0,
     flatbuffers::Offset<flatbuffers::Vector<float>> scale = 0,
-    flatbuffers::Offset<flatbuffers::Vector<float>> tensorScale = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<float>> tensorScale = 0,
+    QuantizeAlgo method = QuantizeAlgo_DEFAULT,
+    int32_t nbits = 8) {
   QuantizedFloatParamBuilder builder_(_fbb);
+  builder_.add_nbits(nbits);
   builder_.add_tensorScale(tensorScale);
   builder_.add_scale(scale);
   builder_.add_bias(bias);
   builder_.add_weight(weight);
+  builder_.add_method(method);
   return builder_.Finish();
 }
 
@@ -1005,7 +1200,9 @@ inline flatbuffers::Offset<QuantizedFloatParam> CreateQuantizedFloatParamDirect(
     const std::vector<int8_t> *weight = nullptr,
     const std::vector<int32_t> *bias = nullptr,
     const std::vector<float> *scale = nullptr,
-    const std::vector<float> *tensorScale = nullptr) {
+    const std::vector<float> *tensorScale = nullptr,
+    QuantizeAlgo method = QuantizeAlgo_DEFAULT,
+    int32_t nbits = 8) {
   auto weight__ = weight ? _fbb.CreateVector<int8_t>(*weight) : 0;
   auto bias__ = bias ? _fbb.CreateVector<int32_t>(*bias) : 0;
   auto scale__ = scale ? _fbb.CreateVector<float>(*scale) : 0;
@@ -1015,7 +1212,9 @@ inline flatbuffers::Offset<QuantizedFloatParam> CreateQuantizedFloatParamDirect(
       weight__,
       bias__,
       scale__,
-      tensorScale__);
+      tensorScale__,
+      method,
+      nbits);
 }
 
 flatbuffers::Offset<QuantizedFloatParam> CreateQuantizedFloatParam(flatbuffers::FlatBufferBuilder &_fbb, const QuantizedFloatParamT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1416,6 +1615,8 @@ struct PoolT : public flatbuffers::NativeTable {
   PoolPadType padType;
   DataType dataType;
   bool ceilModel;
+  std::vector<int32_t> pads;
+  AvgPoolCountType countType;
   PoolT()
       : padX(0),
         padY(0),
@@ -1427,7 +1628,8 @@ struct PoolT : public flatbuffers::NativeTable {
         type(PoolType_MAXPOOL),
         padType(PoolPadType_CAFFE),
         dataType(DataType_DT_FLOAT),
-        ceilModel(true) {
+        ceilModel(true),
+        countType(AvgPoolCountType_DEFAULT) {
   }
 };
 
@@ -1447,7 +1649,9 @@ struct Pool FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_TYPE = 18,
     VT_PADTYPE = 20,
     VT_DATATYPE = 22,
-    VT_CEILMODEL = 24
+    VT_CEILMODEL = 24,
+    VT_PADS = 26,
+    VT_COUNTTYPE = 28
   };
   int32_t padX() const {
     return GetField<int32_t>(VT_PADX, 0);
@@ -1482,6 +1686,12 @@ struct Pool FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool ceilModel() const {
     return GetField<uint8_t>(VT_CEILMODEL, 1) != 0;
   }
+  const flatbuffers::Vector<int32_t> *pads() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_PADS);
+  }
+  AvgPoolCountType countType() const {
+    return static_cast<AvgPoolCountType>(GetField<int8_t>(VT_COUNTTYPE, 0));
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_PADX) &&
@@ -1495,6 +1705,9 @@ struct Pool FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int8_t>(verifier, VT_PADTYPE) &&
            VerifyField<int32_t>(verifier, VT_DATATYPE) &&
            VerifyField<uint8_t>(verifier, VT_CEILMODEL) &&
+           VerifyOffset(verifier, VT_PADS) &&
+           verifier.VerifyVector(pads()) &&
+           VerifyField<int8_t>(verifier, VT_COUNTTYPE) &&
            verifier.EndTable();
   }
   PoolT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1538,6 +1751,12 @@ struct PoolBuilder {
   void add_ceilModel(bool ceilModel) {
     fbb_.AddElement<uint8_t>(Pool::VT_CEILMODEL, static_cast<uint8_t>(ceilModel), 1);
   }
+  void add_pads(flatbuffers::Offset<flatbuffers::Vector<int32_t>> pads) {
+    fbb_.AddOffset(Pool::VT_PADS, pads);
+  }
+  void add_countType(AvgPoolCountType countType) {
+    fbb_.AddElement<int8_t>(Pool::VT_COUNTTYPE, static_cast<int8_t>(countType), 0);
+  }
   explicit PoolBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1562,8 +1781,11 @@ inline flatbuffers::Offset<Pool> CreatePool(
     PoolType type = PoolType_MAXPOOL,
     PoolPadType padType = PoolPadType_CAFFE,
     DataType dataType = DataType_DT_FLOAT,
-    bool ceilModel = true) {
+    bool ceilModel = true,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> pads = 0,
+    AvgPoolCountType countType = AvgPoolCountType_DEFAULT) {
   PoolBuilder builder_(_fbb);
+  builder_.add_pads(pads);
   builder_.add_dataType(dataType);
   builder_.add_strideY(strideY);
   builder_.add_strideX(strideX);
@@ -1571,11 +1793,45 @@ inline flatbuffers::Offset<Pool> CreatePool(
   builder_.add_kernelX(kernelX);
   builder_.add_padY(padY);
   builder_.add_padX(padX);
+  builder_.add_countType(countType);
   builder_.add_ceilModel(ceilModel);
   builder_.add_padType(padType);
   builder_.add_type(type);
   builder_.add_isGlobal(isGlobal);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Pool> CreatePoolDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t padX = 0,
+    int32_t padY = 0,
+    bool isGlobal = false,
+    int32_t kernelX = 0,
+    int32_t kernelY = 0,
+    int32_t strideX = 0,
+    int32_t strideY = 0,
+    PoolType type = PoolType_MAXPOOL,
+    PoolPadType padType = PoolPadType_CAFFE,
+    DataType dataType = DataType_DT_FLOAT,
+    bool ceilModel = true,
+    const std::vector<int32_t> *pads = nullptr,
+    AvgPoolCountType countType = AvgPoolCountType_DEFAULT) {
+  auto pads__ = pads ? _fbb.CreateVector<int32_t>(*pads) : 0;
+  return MNN::CreatePool(
+      _fbb,
+      padX,
+      padY,
+      isGlobal,
+      kernelX,
+      kernelY,
+      strideX,
+      strideY,
+      type,
+      padType,
+      dataType,
+      ceilModel,
+      pads__,
+      countType);
 }
 
 flatbuffers::Offset<Pool> CreatePool(flatbuffers::FlatBufferBuilder &_fbb, const PoolT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -1763,9 +2019,11 @@ flatbuffers::Offset<Relu> CreateRelu(flatbuffers::FlatBufferBuilder &_fbb, const
 
 struct Relu6T : public flatbuffers::NativeTable {
   typedef Relu6 TableType;
-  float slope;
+  float minValue;
+  float maxValue;
   Relu6T()
-      : slope(0.0f) {
+      : minValue(0.0f),
+        maxValue(6.0f) {
   }
 };
 
@@ -1775,14 +2033,19 @@ struct Relu6 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return Relu6TypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SLOPE = 4
+    VT_MINVALUE = 4,
+    VT_MAXVALUE = 6
   };
-  float slope() const {
-    return GetField<float>(VT_SLOPE, 0.0f);
+  float minValue() const {
+    return GetField<float>(VT_MINVALUE, 0.0f);
+  }
+  float maxValue() const {
+    return GetField<float>(VT_MAXVALUE, 6.0f);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<float>(verifier, VT_SLOPE) &&
+           VerifyField<float>(verifier, VT_MINVALUE) &&
+           VerifyField<float>(verifier, VT_MAXVALUE) &&
            verifier.EndTable();
   }
   Relu6T *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1793,8 +2056,11 @@ struct Relu6 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct Relu6Builder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_slope(float slope) {
-    fbb_.AddElement<float>(Relu6::VT_SLOPE, slope, 0.0f);
+  void add_minValue(float minValue) {
+    fbb_.AddElement<float>(Relu6::VT_MINVALUE, minValue, 0.0f);
+  }
+  void add_maxValue(float maxValue) {
+    fbb_.AddElement<float>(Relu6::VT_MAXVALUE, maxValue, 6.0f);
   }
   explicit Relu6Builder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1810,9 +2076,11 @@ struct Relu6Builder {
 
 inline flatbuffers::Offset<Relu6> CreateRelu6(
     flatbuffers::FlatBufferBuilder &_fbb,
-    float slope = 0.0f) {
+    float minValue = 0.0f,
+    float maxValue = 6.0f) {
   Relu6Builder builder_(_fbb);
-  builder_.add_slope(slope);
+  builder_.add_maxValue(maxValue);
+  builder_.add_minValue(minValue);
   return builder_.Finish();
 }
 
@@ -3505,13 +3773,23 @@ struct InterpT : public flatbuffers::NativeTable {
   int32_t outputHeight;
   int32_t resizeType;
   bool alignCorners;
+  bool halfPixelCenters;
+  float widthOffset;
+  float heightOffset;
+  float cubicCoeffA;
+  CoordinateTransformationMode ctm;
   InterpT()
       : widthScale(0.0f),
         heightScale(0.0f),
         outputWidth(0),
         outputHeight(0),
         resizeType(0),
-        alignCorners(false) {
+        alignCorners(false),
+        halfPixelCenters(false),
+        widthOffset(0.0f),
+        heightOffset(0.0f),
+        cubicCoeffA(-0.75f),
+        ctm(CoordinateTransformationMode_NotSet) {
   }
 };
 
@@ -3526,7 +3804,12 @@ struct Interp FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_OUTPUTWIDTH = 8,
     VT_OUTPUTHEIGHT = 10,
     VT_RESIZETYPE = 12,
-    VT_ALIGNCORNERS = 14
+    VT_ALIGNCORNERS = 14,
+    VT_HALFPIXELCENTERS = 16,
+    VT_WIDTHOFFSET = 18,
+    VT_HEIGHTOFFSET = 20,
+    VT_CUBICCOEFFA = 22,
+    VT_CTM = 24
   };
   float widthScale() const {
     return GetField<float>(VT_WIDTHSCALE, 0.0f);
@@ -3546,6 +3829,21 @@ struct Interp FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool alignCorners() const {
     return GetField<uint8_t>(VT_ALIGNCORNERS, 0) != 0;
   }
+  bool halfPixelCenters() const {
+    return GetField<uint8_t>(VT_HALFPIXELCENTERS, 0) != 0;
+  }
+  float widthOffset() const {
+    return GetField<float>(VT_WIDTHOFFSET, 0.0f);
+  }
+  float heightOffset() const {
+    return GetField<float>(VT_HEIGHTOFFSET, 0.0f);
+  }
+  float cubicCoeffA() const {
+    return GetField<float>(VT_CUBICCOEFFA, -0.75f);
+  }
+  CoordinateTransformationMode ctm() const {
+    return static_cast<CoordinateTransformationMode>(GetField<int8_t>(VT_CTM, 0));
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_WIDTHSCALE) &&
@@ -3554,6 +3852,11 @@ struct Interp FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int32_t>(verifier, VT_OUTPUTHEIGHT) &&
            VerifyField<int32_t>(verifier, VT_RESIZETYPE) &&
            VerifyField<uint8_t>(verifier, VT_ALIGNCORNERS) &&
+           VerifyField<uint8_t>(verifier, VT_HALFPIXELCENTERS) &&
+           VerifyField<float>(verifier, VT_WIDTHOFFSET) &&
+           VerifyField<float>(verifier, VT_HEIGHTOFFSET) &&
+           VerifyField<float>(verifier, VT_CUBICCOEFFA) &&
+           VerifyField<int8_t>(verifier, VT_CTM) &&
            verifier.EndTable();
   }
   InterpT *UnPack(const flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -3582,6 +3885,21 @@ struct InterpBuilder {
   void add_alignCorners(bool alignCorners) {
     fbb_.AddElement<uint8_t>(Interp::VT_ALIGNCORNERS, static_cast<uint8_t>(alignCorners), 0);
   }
+  void add_halfPixelCenters(bool halfPixelCenters) {
+    fbb_.AddElement<uint8_t>(Interp::VT_HALFPIXELCENTERS, static_cast<uint8_t>(halfPixelCenters), 0);
+  }
+  void add_widthOffset(float widthOffset) {
+    fbb_.AddElement<float>(Interp::VT_WIDTHOFFSET, widthOffset, 0.0f);
+  }
+  void add_heightOffset(float heightOffset) {
+    fbb_.AddElement<float>(Interp::VT_HEIGHTOFFSET, heightOffset, 0.0f);
+  }
+  void add_cubicCoeffA(float cubicCoeffA) {
+    fbb_.AddElement<float>(Interp::VT_CUBICCOEFFA, cubicCoeffA, -0.75f);
+  }
+  void add_ctm(CoordinateTransformationMode ctm) {
+    fbb_.AddElement<int8_t>(Interp::VT_CTM, static_cast<int8_t>(ctm), 0);
+  }
   explicit InterpBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -3601,13 +3919,23 @@ inline flatbuffers::Offset<Interp> CreateInterp(
     int32_t outputWidth = 0,
     int32_t outputHeight = 0,
     int32_t resizeType = 0,
-    bool alignCorners = false) {
+    bool alignCorners = false,
+    bool halfPixelCenters = false,
+    float widthOffset = 0.0f,
+    float heightOffset = 0.0f,
+    float cubicCoeffA = -0.75f,
+    CoordinateTransformationMode ctm = CoordinateTransformationMode_NotSet) {
   InterpBuilder builder_(_fbb);
+  builder_.add_cubicCoeffA(cubicCoeffA);
+  builder_.add_heightOffset(heightOffset);
+  builder_.add_widthOffset(widthOffset);
   builder_.add_resizeType(resizeType);
   builder_.add_outputHeight(outputHeight);
   builder_.add_outputWidth(outputWidth);
   builder_.add_heightScale(heightScale);
   builder_.add_widthScale(widthScale);
+  builder_.add_ctm(ctm);
+  builder_.add_halfPixelCenters(halfPixelCenters);
   builder_.add_alignCorners(alignCorners);
   return builder_.Finish();
 }
@@ -4116,6 +4444,8 @@ inline void Convolution2DCommon::UnPackTo(Convolution2DCommonT *_o, const flatbu
   { auto _e = inputCount(); _o->inputCount = _e; };
   { auto _e = relu(); _o->relu = _e; };
   { auto _e = relu6(); _o->relu6 = _e; };
+  { auto _e = pads(); if (_e) { _o->pads.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->pads[_i] = _e->Get(_i); } } };
+  { auto _e = outPads(); if (_e) { _o->outPads.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->outPads[_i] = _e->Get(_i); } } };
 }
 
 inline flatbuffers::Offset<Convolution2DCommon> Convolution2DCommon::Pack(flatbuffers::FlatBufferBuilder &_fbb, const Convolution2DCommonT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -4140,6 +4470,8 @@ inline flatbuffers::Offset<Convolution2DCommon> CreateConvolution2DCommon(flatbu
   auto _inputCount = _o->inputCount;
   auto _relu = _o->relu;
   auto _relu6 = _o->relu6;
+  auto _pads = _o->pads.size() ? _fbb.CreateVector(_o->pads) : 0;
+  auto _outPads = _o->outPads.size() ? _fbb.CreateVector(_o->outPads) : 0;
   return MNN::CreateConvolution2DCommon(
       _fbb,
       _padX,
@@ -4155,7 +4487,9 @@ inline flatbuffers::Offset<Convolution2DCommon> CreateConvolution2DCommon(flatbu
       _outputCount,
       _inputCount,
       _relu,
-      _relu6);
+      _relu6,
+      _pads,
+      _outPads);
 }
 
 inline Convolution3DCommonT *Convolution3DCommon::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -4277,6 +4611,8 @@ inline void QuantizedFloatParam::UnPackTo(QuantizedFloatParamT *_o, const flatbu
   { auto _e = bias(); if (_e) { _o->bias.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->bias[_i] = _e->Get(_i); } } };
   { auto _e = scale(); if (_e) { _o->scale.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->scale[_i] = _e->Get(_i); } } };
   { auto _e = tensorScale(); if (_e) { _o->tensorScale.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->tensorScale[_i] = _e->Get(_i); } } };
+  { auto _e = method(); _o->method = _e; };
+  { auto _e = nbits(); _o->nbits = _e; };
 }
 
 inline flatbuffers::Offset<QuantizedFloatParam> QuantizedFloatParam::Pack(flatbuffers::FlatBufferBuilder &_fbb, const QuantizedFloatParamT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -4291,12 +4627,16 @@ inline flatbuffers::Offset<QuantizedFloatParam> CreateQuantizedFloatParam(flatbu
   auto _bias = _o->bias.size() ? _fbb.CreateVector(_o->bias) : 0;
   auto _scale = _o->scale.size() ? _fbb.CreateVector(_o->scale) : 0;
   auto _tensorScale = _o->tensorScale.size() ? _fbb.CreateVector(_o->tensorScale) : 0;
+  auto _method = _o->method;
+  auto _nbits = _o->nbits;
   return MNN::CreateQuantizedFloatParam(
       _fbb,
       _weight,
       _bias,
       _scale,
-      _tensorScale);
+      _tensorScale,
+      _method,
+      _nbits);
 }
 
 inline Convolution2DT *Convolution2D::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -4436,6 +4776,8 @@ inline void Pool::UnPackTo(PoolT *_o, const flatbuffers::resolver_function_t *_r
   { auto _e = padType(); _o->padType = _e; };
   { auto _e = dataType(); _o->dataType = _e; };
   { auto _e = ceilModel(); _o->ceilModel = _e; };
+  { auto _e = pads(); if (_e) { _o->pads.resize(_e->size()); for (flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->pads[_i] = _e->Get(_i); } } };
+  { auto _e = countType(); _o->countType = _e; };
 }
 
 inline flatbuffers::Offset<Pool> Pool::Pack(flatbuffers::FlatBufferBuilder &_fbb, const PoolT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -4457,6 +4799,8 @@ inline flatbuffers::Offset<Pool> CreatePool(flatbuffers::FlatBufferBuilder &_fbb
   auto _padType = _o->padType;
   auto _dataType = _o->dataType;
   auto _ceilModel = _o->ceilModel;
+  auto _pads = _o->pads.size() ? _fbb.CreateVector(_o->pads) : 0;
+  auto _countType = _o->countType;
   return MNN::CreatePool(
       _fbb,
       _padX,
@@ -4469,7 +4813,9 @@ inline flatbuffers::Offset<Pool> CreatePool(flatbuffers::FlatBufferBuilder &_fbb
       _type,
       _padType,
       _dataType,
-      _ceilModel);
+      _ceilModel,
+      _pads,
+      _countType);
 }
 
 inline Pool3DT *Pool3D::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -4545,7 +4891,8 @@ inline Relu6T *Relu6::UnPack(const flatbuffers::resolver_function_t *_resolver) 
 inline void Relu6::UnPackTo(Relu6T *_o, const flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = slope(); _o->slope = _e; };
+  { auto _e = minValue(); _o->minValue = _e; };
+  { auto _e = maxValue(); _o->maxValue = _e; };
 }
 
 inline flatbuffers::Offset<Relu6> Relu6::Pack(flatbuffers::FlatBufferBuilder &_fbb, const Relu6T* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -4556,10 +4903,12 @@ inline flatbuffers::Offset<Relu6> CreateRelu6(flatbuffers::FlatBufferBuilder &_f
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { flatbuffers::FlatBufferBuilder *__fbb; const Relu6T* __o; const flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _slope = _o->slope;
+  auto _minValue = _o->minValue;
+  auto _maxValue = _o->maxValue;
   return MNN::CreateRelu6(
       _fbb,
-      _slope);
+      _minValue,
+      _maxValue);
 }
 
 inline PReluT *PRelu::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -5169,6 +5518,11 @@ inline void Interp::UnPackTo(InterpT *_o, const flatbuffers::resolver_function_t
   { auto _e = outputHeight(); _o->outputHeight = _e; };
   { auto _e = resizeType(); _o->resizeType = _e; };
   { auto _e = alignCorners(); _o->alignCorners = _e; };
+  { auto _e = halfPixelCenters(); _o->halfPixelCenters = _e; };
+  { auto _e = widthOffset(); _o->widthOffset = _e; };
+  { auto _e = heightOffset(); _o->heightOffset = _e; };
+  { auto _e = cubicCoeffA(); _o->cubicCoeffA = _e; };
+  { auto _e = ctm(); _o->ctm = _e; };
 }
 
 inline flatbuffers::Offset<Interp> Interp::Pack(flatbuffers::FlatBufferBuilder &_fbb, const InterpT* _o, const flatbuffers::rehasher_function_t *_rehasher) {
@@ -5185,6 +5539,11 @@ inline flatbuffers::Offset<Interp> CreateInterp(flatbuffers::FlatBufferBuilder &
   auto _outputHeight = _o->outputHeight;
   auto _resizeType = _o->resizeType;
   auto _alignCorners = _o->alignCorners;
+  auto _halfPixelCenters = _o->halfPixelCenters;
+  auto _widthOffset = _o->widthOffset;
+  auto _heightOffset = _o->heightOffset;
+  auto _cubicCoeffA = _o->cubicCoeffA;
+  auto _ctm = _o->ctm;
   return MNN::CreateInterp(
       _fbb,
       _widthScale,
@@ -5192,7 +5551,12 @@ inline flatbuffers::Offset<Interp> CreateInterp(flatbuffers::FlatBufferBuilder &
       _outputWidth,
       _outputHeight,
       _resizeType,
-      _alignCorners);
+      _alignCorners,
+      _halfPixelCenters,
+      _widthOffset,
+      _heightOffset,
+      _cubicCoeffA,
+      _ctm);
 }
 
 inline ResizeT *Resize::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
@@ -5370,6 +5734,24 @@ inline const flatbuffers::TypeTable *PadModeTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *QuantizeAlgoTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    QuantizeAlgoTypeTable
+  };
+  static const char * const names[] = {
+    "DEFAULT",
+    "OVERFLOW_AWARE"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *PoolTypeTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -5408,6 +5790,26 @@ inline const flatbuffers::TypeTable *PoolPadTypeTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *AvgPoolCountTypeTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    AvgPoolCountTypeTypeTable
+  };
+  static const char * const names[] = {
+    "DEFAULT",
+    "INCLUDE_PADDING",
+    "EXCLUDE_PADDING"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *EltwiseTypeTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_CHAR, 0, 0 },
@@ -5430,6 +5832,34 @@ inline const flatbuffers::TypeTable *EltwiseTypeTypeTable() {
   return &tt;
 }
 
+inline const flatbuffers::TypeTable *CoordinateTransformationModeTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    CoordinateTransformationModeTypeTable
+  };
+  static const char * const names[] = {
+    "NotSet",
+    "AlignCorners",
+    "HalfPixels",
+    "PytorchHalfPixels",
+    "Asymmetric",
+    "TensorflowHalfPixels",
+    "TensorflowCropAndResize"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_ENUM, 7, type_codes, type_refs, nullptr, names
+  };
+  return &tt;
+}
+
 inline const flatbuffers::TypeTable *Convolution2DCommonTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 },
@@ -5445,7 +5875,9 @@ inline const flatbuffers::TypeTable *Convolution2DCommonTypeTable() {
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_BOOL, 0, -1 },
-    { flatbuffers::ET_BOOL, 0, -1 }
+    { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_INT, 1, -1 },
+    { flatbuffers::ET_INT, 1, -1 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     PadModeTypeTable
@@ -5464,10 +5896,12 @@ inline const flatbuffers::TypeTable *Convolution2DCommonTypeTable() {
     "outputCount",
     "inputCount",
     "relu",
-    "relu6"
+    "relu6",
+    "pads",
+    "outPads"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 14, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 16, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -5542,16 +5976,23 @@ inline const flatbuffers::TypeTable *QuantizedFloatParamTypeTable() {
     { flatbuffers::ET_CHAR, 1, -1 },
     { flatbuffers::ET_INT, 1, -1 },
     { flatbuffers::ET_FLOAT, 1, -1 },
-    { flatbuffers::ET_FLOAT, 1, -1 }
+    { flatbuffers::ET_FLOAT, 1, -1 },
+    { flatbuffers::ET_CHAR, 0, 0 },
+    { flatbuffers::ET_INT, 0, -1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    QuantizeAlgoTypeTable
   };
   static const char * const names[] = {
     "weight",
     "bias",
     "scale",
-    "tensorScale"
+    "tensorScale",
+    "method",
+    "nbits"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 4, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 6, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -5644,12 +6085,15 @@ inline const flatbuffers::TypeTable *PoolTypeTable() {
     { flatbuffers::ET_CHAR, 0, 0 },
     { flatbuffers::ET_CHAR, 0, 1 },
     { flatbuffers::ET_INT, 0, 2 },
-    { flatbuffers::ET_BOOL, 0, -1 }
+    { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_INT, 1, -1 },
+    { flatbuffers::ET_CHAR, 0, 3 }
   };
   static const flatbuffers::TypeFunction type_refs[] = {
     PoolTypeTypeTable,
     PoolPadTypeTypeTable,
-    DataTypeTypeTable
+    DataTypeTypeTable,
+    AvgPoolCountTypeTypeTable
   };
   static const char * const names[] = {
     "padX",
@@ -5662,10 +6106,12 @@ inline const flatbuffers::TypeTable *PoolTypeTable() {
     "type",
     "padType",
     "dataType",
-    "ceilModel"
+    "ceilModel",
+    "pads",
+    "countType"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, names
+    flatbuffers::ST_TABLE, 13, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }
@@ -5710,13 +6156,15 @@ inline const flatbuffers::TypeTable *ReluTypeTable() {
 
 inline const flatbuffers::TypeTable *Relu6TypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 }
   };
   static const char * const names[] = {
-    "slope"
+    "minValue",
+    "maxValue"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -6068,7 +6516,15 @@ inline const flatbuffers::TypeTable *InterpTypeTable() {
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_INT, 0, -1 },
-    { flatbuffers::ET_BOOL, 0, -1 }
+    { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_BOOL, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_CHAR, 0, 0 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    CoordinateTransformationModeTypeTable
   };
   static const char * const names[] = {
     "widthScale",
@@ -6076,10 +6532,15 @@ inline const flatbuffers::TypeTable *InterpTypeTable() {
     "outputWidth",
     "outputHeight",
     "resizeType",
-    "alignCorners"
+    "alignCorners",
+    "halfPixelCenters",
+    "widthOffset",
+    "heightOffset",
+    "cubicCoeffA",
+    "ctm"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 6, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, names
   };
   return &tt;
 }

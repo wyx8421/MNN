@@ -20,11 +20,19 @@ bool onnx_read_proto_from_binary(const char* filepath, google::protobuf::Message
     google::protobuf::io::IstreamInputStream input(&fs);
     google::protobuf::io::CodedInputStream codedstr(&input);
 
-    codedstr.SetTotalBytesLimit(INT_MAX, INT_MAX / 2);
-
     bool success = message->ParseFromCodedStream(&codedstr);
 
     fs.close();
 
     return success;
+}
+bool onnx_write_proto_from_binary(const char* filepath, const google::protobuf::Message* message) {
+    std::ofstream fs(filepath);
+    if (fs.fail()) {
+        fprintf(stderr, "open failed %s\n", filepath);
+        return false;
+    }
+    message->SerializeToOstream(&fs);
+    fs.close();
+    return true;
 }

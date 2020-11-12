@@ -21,7 +21,12 @@ void OneHotImpl(int depth, int outerSize, int innerSize, const int* indices, con
     for (int i = 0; i < outerSize; ++i) {
         for (int j = 0; j < depth; ++j) {
             for (int k = 0; k < innerSize; ++k) {
-                *outputPtr = indices[i * innerSize + k] == j ? onValue : offValue;
+                auto index = indices[i * innerSize + k];
+                if (index == j) {
+                    *outputPtr = onValue;
+                } else {
+                    *outputPtr = offValue;
+                }
                 outputPtr++;
             }
         }
@@ -34,11 +39,12 @@ ErrorCode CPUOneHot::onExecute(const std::vector<Tensor*>& inputs, const std::ve
     auto onValueTensor  = inputs[2];
     auto offValueTensor = inputs[3];
 
-    if (mAxis == -1) {
-        mAxis = indices->dimensions();
+    int axis = mAxis;
+    if (axis < 0) {
+        axis += outputs[0]->dimensions();
     }
     int outerSize = 1;
-    for (int i = 0; i < mAxis; ++i) {
+    for (int i = 0; i < axis; ++i) {
         outerSize *= indices->length(i);
     }
     const int depth       = depthTensor->host<int>()[0];

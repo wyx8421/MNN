@@ -6,8 +6,8 @@
 //  Copyright © 2018, Alibaba Group Holding Limited
 //
 
+#include "shape/SizeComputer.hpp"
 #include "core/Macro.h"
-#include "core/SizeComputer.hpp"
 #include "core/TensorUtils.hpp"
 
 namespace MNN {
@@ -87,6 +87,7 @@ public:
         outputTensorBuffer.dim[1].extent                      = 2;
         outputTensorBuffer.dim[2].extent                      = 4 * w * h * priorCount;
         outputTensorBuffer.dim[3].extent                      = 1;
+        outputTensorBuffer.type = halide_type_of<float>();
         TensorUtils::getDescribe(outputs[0])->dimensionFormat = MNN_DATA_FORMAT_NC4HW4;
 
         return true;

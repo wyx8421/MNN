@@ -6,8 +6,8 @@
 //  Copyright © 2018, Alibaba Group Holding Limited
 //
 
+#include "shape/SizeComputer.hpp"
 #include "core/Macro.h"
-#include "core/SizeComputer.hpp"
 #include "core/TensorUtils.hpp"
 
 namespace MNN {
@@ -17,26 +17,35 @@ class ShapeBroadcastTo : public SizeComputer {
                                const std::vector<Tensor*>& outputs) const override {
         MNN_ASSERT(inputs.size() == 2);
         MNN_ASSERT(outputs.size() == 1);
-
         auto input  = inputs[0];
         auto shape  = inputs[1];
         auto output = outputs[0];
-
-        const int dimension = input->dimensions();
-        MNN_CHECK(shape->elementSize() == dimension, "input dimension does not match given shape!");
-
-        output->buffer().dimensions = dimension;
+        int inputDims = input->dimensions();
+        int shapeDims = shape->elementSize();
+        output->buffer().dimensions = inputDims > shapeDims ? inputDims : shapeDims;
+        const int dimension = output->dimensions();
         const int* shapeData        = shape->host<int>();
-        for (int i = 0; i < dimension; ++i) {
-            const int dim = input->length(i);
-            if (shapeData[i] != dim) {
-                MNN_CHECK(dim == 1, "for each dimension pair they are either equal or one of them is one.");
+        for (int i = 1; i <= dimension; ++i) {
+            int inputDim = 1, shapeDim = 1;
+            if (i <= inputDims) {
+                inputDim = input->length(inputDims - i);
             }
-            output->setLength(i, shapeData[i]);
+            if (i <= shapeDims) {
+                shapeDim = shapeData[shapeDims - i];
+            }
+            if (shapeDim <= 1) {
+                // shapeDim is {-1,0,1}, keep inputDim
+                output->setLength(dimension - i, inputDim);
+            } else {
+                // broadcast inputDim to shapeDim, need shapDim % inputDim == 0
+                // inputDim == 0, need shapeDim <= 0 keep dim
+                MNN_ASSERT(inputDim != 0);
+                MNN_ASSERT(shapeDim % inputDim == 0);
+                output->setLength(dimension - i, shapeDim);
+            }
         }
         output->buffer().type                             = input->buffer().type;
         TensorUtils::getDescribe(output)->dimensionFormat = TensorUtils::getDescribe(input)->dimensionFormat;
-
         return true;
     }
 };

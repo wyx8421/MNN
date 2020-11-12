@@ -11,19 +11,26 @@
 
 #include <functional>
 #include "core/Execution.hpp"
+#include "backend/cpu/compute/StrassenMatmulComputor.hpp"
+
 namespace MNN {
 
 class CPUMatMul : public Execution {
 public:
-    CPUMatMul(Backend *backend, bool transposeA, bool transposeB);
+    CPUMatMul(Backend *backend, bool transposeA, bool transposeB, bool multiThread);
     virtual ~CPUMatMul() = default;
     virtual ErrorCode onResize(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) override;
     virtual ErrorCode onExecute(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) override;
 
 private:
+    void _scheduleForVec(float* C, const float* A, const float* B, const float* biasPtr, int e, int l, int h);
+    void _scheduleForVecE(float* C, const float* A, const float* B, const float* biasPtr, int e, int l, int h);
     bool mTransposeA;
     bool mTransposeB;
-    std::vector<std::function<void()>> mFunction;
+    bool mSupportMultiThread = false;
+    std::vector<std::pair<std::function<void(int)>, int>> mPreFunctions;
+    std::vector<std::pair<std::function<void(int)>, int>> mPostFunctions;
+    std::shared_ptr<StrassenMatrixComputor> mComputer;
 };
 } // namespace MNN
 

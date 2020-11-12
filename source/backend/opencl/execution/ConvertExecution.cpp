@@ -8,7 +8,6 @@
 
 #include "backend/opencl/execution/ConvertExecution.hpp"
 #include "core/Macro.h"
-#include "backend/cpu/CPUTensorConvert.hpp"
 #include "core/TensorUtils.hpp"
 
 namespace MNN {
@@ -54,7 +53,8 @@ namespace MNN {
             mGlobalWorkSize = {static_cast<uint32_t>(channelBlocks), static_cast<uint32_t>(width),
                 static_cast<uint32_t>(height * batch)};
 
-            mLocalWorkSize = localWS3DDefault(gws, mMaxWorkGroupSize, mOpenCLBackend->getOpenCLRuntime());
+            std::string name = "convert";
+            mLocalWorkSize = localWS3DDefault(gws, mMaxWorkGroupSize, mOpenCLBackend->getOpenCLRuntime(), name, mKernel);
             return NO_ERROR;
         }
 
@@ -63,8 +63,18 @@ namespace MNN {
             MNN_PRINT("Start ConvertExecution onExecute... \n");
 #endif
 
-            run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize, mOpenCLBackend->getOpenCLRuntime());
-
+        #ifdef ENABLE_OPENCL_TIME_PROFILER
+            cl::Event event;
+            run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize,
+                               mOpenCLBackend->getOpenCLRuntime(), &event);
+            
+            int costTime = (int)mOpenCLBackend->getOpenCLRuntime()->getCostTime(&event);
+            MNN_PRINT("kernel cost:%d    us Convert\n",costTime);
+        #else
+            run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize,
+                               mOpenCLBackend->getOpenCLRuntime());
+        #endif
+            
 #ifdef LOG_VERBOSE
             MNN_PRINT("End ConvertExecution onExecute... \n");
 #endif

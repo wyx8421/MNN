@@ -22,6 +22,11 @@
 #ifndef HALF_HALF_HPP
 #define HALF_HALF_HPP
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcomma"
+#endif
+
 /// Combined gcc version number.
 #define HALF_GNUC_VERSION (__GNUC__*100+__GNUC_MINOR__)
 
@@ -95,68 +100,11 @@
 #endif
 
 //check C++11 library features
+#define HALF_ENABLE_CPP11_CMATH 0
+#define HALF_ENABLE_CPP11_TYPE_TRAITS 0
+#define HALF_ENABLE_CPP11_CSTDINT 0
+#define HALF_ENABLE_CPP11_HASH 0
 #include <utility>
-#if defined(_LIBCPP_VERSION)								//libc++
-	#if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103
-		#ifndef HALF_ENABLE_CPP11_TYPE_TRAITS
-			#define HALF_ENABLE_CPP11_TYPE_TRAITS 1
-		#endif
-		#ifndef HALF_ENABLE_CPP11_CSTDINT
-			#define HALF_ENABLE_CPP11_CSTDINT 1
-		#endif
-		#ifndef HALF_ENABLE_CPP11_CMATH
-			#define HALF_ENABLE_CPP11_CMATH 1
-		#endif
-		#ifndef HALF_ENABLE_CPP11_HASH
-			#define HALF_ENABLE_CPP11_HASH 1
-		#endif
-	#endif
-#elif defined(__GLIBCXX__)									//libstdc++
-	#if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103
-		#ifdef __clang__
-			#if __GLIBCXX__ >= 20080606 && !defined(HALF_ENABLE_CPP11_TYPE_TRAITS)
-				#define HALF_ENABLE_CPP11_TYPE_TRAITS 1
-			#endif
-			#if __GLIBCXX__ >= 20080606 && !defined(HALF_ENABLE_CPP11_CSTDINT)
-				#define HALF_ENABLE_CPP11_CSTDINT 1
-			#endif
-			#if __GLIBCXX__ >= 20080606 && !defined(HALF_ENABLE_CPP11_CMATH)
-				#define HALF_ENABLE_CPP11_CMATH 1
-			#endif
-			#if __GLIBCXX__ >= 20080606 && !defined(HALF_ENABLE_CPP11_HASH)
-				#define HALF_ENABLE_CPP11_HASH 1
-			#endif
-		#else
-			#if HALF_GNUC_VERSION >= 403 && !defined(HALF_ENABLE_CPP11_CSTDINT)
-				#define HALF_ENABLE_CPP11_CSTDINT 1
-			#endif
-			#if HALF_GNUC_VERSION >= 403 && !defined(HALF_ENABLE_CPP11_CMATH)
-				#define HALF_ENABLE_CPP11_CMATH 1
-			#endif
-			#if HALF_GNUC_VERSION >= 403 && !defined(HALF_ENABLE_CPP11_HASH)
-				#define HALF_ENABLE_CPP11_HASH 1
-			#endif
-		#endif
-	#endif
-#elif defined(_CPPLIB_VER)									//Dinkumware/Visual C++
-	#if _CPPLIB_VER >= 520
-		#ifndef HALF_ENABLE_CPP11_TYPE_TRAITS
-			#define HALF_ENABLE_CPP11_TYPE_TRAITS 1
-		#endif
-		#ifndef HALF_ENABLE_CPP11_CSTDINT
-			#define HALF_ENABLE_CPP11_CSTDINT 1
-		#endif
-		#ifndef HALF_ENABLE_CPP11_HASH
-			#define HALF_ENABLE_CPP11_HASH 1
-		#endif
-	#endif
-	#if _CPPLIB_VER >= 610
-		#ifndef HALF_ENABLE_CPP11_CMATH
-			#define HALF_ENABLE_CPP11_CMATH 1
-		#endif
-	#endif
-#endif
-#undef HALF_GNUC_VERSION
 
 //support constexpr
 #if HALF_ENABLE_CPP11_CONSTEXPR
@@ -1093,7 +1041,6 @@ namespace half_float
 		HALF_CONSTEXPR half() HALF_NOEXCEPT : data_() {}
 
 		/// Copy constructor.
-		/// \tparam T type of concrete half expression
 		/// \param rhs half expression to copy from
 		half(detail::expr rhs) : data_(detail::float2half<round_style>(static_cast<float>(rhs))) {}
 
@@ -1106,7 +1053,6 @@ namespace half_float
 		operator float() const { return detail::half2float<float>(data_); }
 
 		/// Assignment operator.
-		/// \tparam T type of concrete half expression
 		/// \param rhs half expression to copy from
 		/// \return reference to this half
 		half& operator=(detail::expr rhs) { return *this = static_cast<float>(rhs); }
@@ -3063,6 +3009,10 @@ namespace std
 #ifdef HALF_POP_WARNINGS
 	#pragma warning(pop)
 	#undef HALF_POP_WARNINGS
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic pop
 #endif
 
 #endif

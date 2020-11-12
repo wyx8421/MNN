@@ -18,14 +18,14 @@
 namespace MNN {
 
 /** execution wrapper. hiding cross-backend tensor converting. */
-class WrapExecution : public Execution {
+class MNN_PUBLIC WrapExecution : public Execution {
 public:
     /**
      * @brief initializer.
      * @param CPUBackend    CPU backend.
      * @param execution     execution to be wrapped.
      */
-    WrapExecution(Backend *CPUBackend, std::shared_ptr<Execution> execution);
+    WrapExecution(Backend *CPUBackend, std::shared_ptr<Execution> execution, bool isStatic = true);
     /**
      * @brief deinitializer.
      */
@@ -34,10 +34,13 @@ public:
     virtual ErrorCode onExecute(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) override;
 
 private:
+    Tensor *_getCopyTensor(Tensor *input);
     Backend *mCPUBackend;
     std::shared_ptr<Execution> mExecution;
     std::vector<Tensor *> mWrapInputTensors;
-    std::vector<std::tuple<Backend *, Backend *, Tensor *, std::shared_ptr<Tensor>>> mInputMaps;
+    std::shared_ptr<Tensor> mWrapForRaster;
+    std::map<Tensor *, std::tuple<Backend *, Backend *, std::shared_ptr<Tensor>>> mInputMaps;
+    bool mStatic;
 };
 } // namespace MNN
 

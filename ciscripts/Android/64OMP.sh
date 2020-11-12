@@ -1,5 +1,4 @@
-set -e
-schema/generate.sh
+./schema/generate.sh
 cd project/android
 mkdir build_64
 cd build_64

@@ -44,7 +44,6 @@ NormalizeExecution::NormalizeExecution(const std::vector<Tensor *> &inputs, cons
                       1);
 
     mEps          = mNormalizeParams->eps();
-    mAreadySetArg = false;
 #ifdef LOG_VERBOSE
     MNN_PRINT("end NormalizeExecution init !\n");
 #endif
@@ -67,6 +66,36 @@ ErrorCode NormalizeExecution::onResize(const std::vector<Tensor *> &inputs, cons
         mMaxWorkGroupSize      = static_cast<uint32_t>(runtime->getMaxWorkGroupSize(mKernel));
     }
 
+    Tensor *input  = inputs[0];
+    Tensor *output = outputs[0];
+
+    std::vector<int> inputShape  = tensorShapeFormat(input);
+    std::vector<int> outputShape = tensorShapeFormat(output);
+
+    const int batch    = inputShape.at(0);
+    const int height   = inputShape.at(1);
+    const int width    = inputShape.at(2);
+    const int channels = inputShape.at(3);
+
+    const int channelBlocks  = UP_DIV(channels, 4);
+    const int remainChannels = channelBlocks * 4 - channels;
+
+    mGlobalWorkSize = {static_cast<uint32_t>(channelBlocks),
+                       static_cast<uint32_t>(width),
+                       static_cast<uint32_t>(height * batch)};
+    uint32_t idx    = 0;
+    mKernel.setArg(idx++, mGlobalWorkSize[0]);
+    mKernel.setArg(idx++, mGlobalWorkSize[1]);
+    mKernel.setArg(idx++, mGlobalWorkSize[2]);
+
+    mKernel.setArg(idx++, openCLImage(input));
+    mKernel.setArg(idx++, openCLImage(mScale.get()));
+    mKernel.setArg(idx++, mEps);
+    mKernel.setArg(idx++, channelBlocks);
+    mKernel.setArg(idx++, remainChannels);
+    mKernel.setArg(idx++, openCLImage(output));
+    mLocalWorkSize = normalizeLocalWS(mGlobalWorkSize, mMaxWorkGroupSize);
+    
 #ifdef LOG_VERBOSE
     MNN_PRINT("end NormalizeExecution onResize !\n");
 #endif
@@ -76,62 +105,26 @@ ErrorCode NormalizeExecution::onResize(const std::vector<Tensor *> &inputs, cons
 std::vector<uint32_t> NormalizeExecution::normalizeLocalWS(const std::vector<uint32_t> &gws,
                                                            const uint32_t maxWorkGroupSize) {
     std::vector<uint32_t> lws(4, 0);
-    GpuType gpuType             = mOpenCLBackend->getOpenCLRuntime()->getGpuType();
+    auto maxWorkItemSizes       = mOpenCLBackend->getOpenCLRuntime()->getMaxWorkItemSizes();
     uint32_t deviceComputeUnits = mOpenCLBackend->getOpenCLRuntime()->deviceComputeUnits();
-    if (gpuType == GpuType::ADRENO) {
-        int coreNum   = deviceComputeUnits;
-        int remain    = gws[0] % coreNum;
-        int groupSize = gws[0] / coreNum;
+    int coreNum = deviceComputeUnits;
+    for (int i = 0, totalSizeNow = 1; i < gws.size(); ++i) {
+        int remain = gws[i] % coreNum, groupSize = gws[i] / coreNum;
         if (remain == 0) {
-            lws[0] = groupSize;
+            lws[i] = groupSize;
         } else {
-            while (groupSize) {
-                int remain = gws[0] % groupSize;
-                if (remain == 0 && groupSize <= maxWorkGroupSize) {
-                    lws[0] = groupSize;
+            while(groupSize) {
+                int remain = gws[i] % groupSize;
+                if (remain == 0 && (i > 0 || groupSize <= maxWorkGroupSize)) {
+                    lws[i] = groupSize;
                     break;
                 }
-                groupSize--;
+                --groupSize;
             }
         }
-        lws[0] = std::max<uint32_t>(std::min<uint32_t>(maxWorkGroupSize, lws[0]), 1);
-
-        remain    = gws[1] % coreNum;
-        groupSize = gws[1] / coreNum;
-        if (remain == 0) {
-            lws[1] = groupSize;
-        } else {
-            while (groupSize) {
-                int remain = gws[1] % groupSize;
-                if (remain == 0) {
-                    lws[1] = groupSize;
-                    break;
-                }
-                groupSize--;
-            }
-        }
-        lws[1] = std::max<uint32_t>(std::min<uint32_t>(maxWorkGroupSize / lws[0], lws[1]), 1);
-
-        remain    = gws[2] % coreNum;
-        groupSize = gws[2] / coreNum;
-        if (remain == 0) {
-            lws[2] = groupSize;
-        } else {
-            while (groupSize) {
-                int remain = gws[2] % groupSize;
-                if (remain == 0) {
-                    lws[2] = groupSize;
-                    break;
-                }
-                groupSize--;
-            }
-        }
-
-        lws[2] = std::max<uint32_t>(std::min<uint32_t>(maxWorkGroupSize / (lws[0] * lws[1]), lws[2]), 1);
-    } else {
-        lws[0] = deviceComputeUnits * 2;
-        lws[1] = 4;
-        lws[2] = 1;
+        int limit = std::min<uint32_t>(maxWorkGroupSize / totalSizeNow, maxWorkItemSizes[i]);
+        lws[i] = std::max<uint32_t>(std::min<uint32_t>(lws[i], limit), 1);
+        totalSizeNow *= lws[i];
     }
     return lws;
 }
@@ -141,42 +134,18 @@ ErrorCode NormalizeExecution::onExecute(const std::vector<Tensor *> &inputs, con
     MNN_PRINT("Start NormalizeExecution onExecute !\n");
 #endif
 
-    auto runtime = mOpenCLBackend->getOpenCLRuntime();
-
-    if (!mAreadySetArg) {
-        Tensor *input  = inputs[0];
-        Tensor *output = outputs[0];
-
-        std::vector<int> inputShape  = tensorShapeFormat(input);
-        std::vector<int> outputShape = tensorShapeFormat(output);
-
-        const int batch    = inputShape.at(0);
-        const int height   = inputShape.at(1);
-        const int width    = inputShape.at(2);
-        const int channels = inputShape.at(3);
-
-        const int channelBlocks  = UP_DIV(channels, 4);
-        const int remainChannels = channelBlocks * 4 - channels;
-
-        mGlobalWorkSize = {static_cast<uint32_t>(channelBlocks), static_cast<uint32_t>(width),
-                           static_cast<uint32_t>(height * batch)};
-        uint32_t idx    = 0;
-        mKernel.setArg(idx++, mGlobalWorkSize[0]);
-        mKernel.setArg(idx++, mGlobalWorkSize[1]);
-        mKernel.setArg(idx++, mGlobalWorkSize[2]);
-
-        mKernel.setArg(idx++, openCLImage(input));
-        mKernel.setArg(idx++, openCLImage(mScale.get()));
-        mKernel.setArg(idx++, mEps);
-        mKernel.setArg(idx++, channelBlocks);
-        mKernel.setArg(idx++, remainChannels);
-        mKernel.setArg(idx++, openCLImage(output));
-        mLocalWorkSize = normalizeLocalWS(mGlobalWorkSize, mMaxWorkGroupSize);
-        mAreadySetArg  = true;
-    }
-
-    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize, runtime);
-
+#ifdef ENABLE_OPENCL_TIME_PROFILER
+    cl::Event event;
+    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize,
+                       mOpenCLBackend->getOpenCLRuntime(), &event);
+    
+    int costTime = (int)mOpenCLBackend->getOpenCLRuntime()->getCostTime(&event);
+    MNN_PRINT("kernel cost:%d    us Normalize\n",costTime);
+#else
+    run3DKernelDefault(mKernel, mGlobalWorkSize, mLocalWorkSize,
+                       mOpenCLBackend->getOpenCLRuntime());
+#endif
+    
 #ifdef LOG_VERBOSE
     MNN_PRINT("end NormalizeExecution onExecute !\n");
 #endif

@@ -25,7 +25,7 @@ void BinaryTflite::run(MNN::OpT* dstOp, const std::unique_ptr<tflite::OperatorT>
                        const std::vector<std::unique_ptr<tflite::BufferT>>& tfliteModelBuffer,
                        const std::vector<std::unique_ptr<tflite::OperatorCodeT>>& tfliteOpSet, bool quantizedModel) {
     auto param = new MNN::BinaryOpT;
-    switch (tfliteOp->opcode_index) {
+    switch (tfliteOpSet[tfliteOp->opcode_index]->builtin_code) {
         case tflite::BuiltinOperator_POW: {
             param->opType = MNN::BinaryOpOperation_POW;
             break;
@@ -58,6 +58,10 @@ void BinaryTflite::run(MNN::OpT* dstOp, const std::unique_ptr<tflite::OperatorT>
             param->opType = MNN::BinaryOpOperation_FLOORDIV;
             break;
         }
+        case tflite::BuiltinOperator_DIV: {
+            param->opType = MNN::BinaryOpOperation_DIV;
+            break;
+        }
         case tflite::BuiltinOperator_FLOOR_MOD: {
             param->opType = MNN::BinaryOpOperation_FLOORMOD;
             break;
@@ -72,6 +76,10 @@ void BinaryTflite::run(MNN::OpT* dstOp, const std::unique_ptr<tflite::OperatorT>
         }
         case tflite::BuiltinOperator_EQUAL: {
             param->opType = MNN::BinaryOpOperation_EQUAL;
+            break;
+        }
+        case tflite::BuiltinOperator_NOT_EQUAL:{
+            param->opType = MNN::BinaryOpOperation_NOTEQUAL;
             break;
         }
         case tflite::BuiltinOperator_SQUARED_DIFFERENCE: {
@@ -96,13 +104,15 @@ REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_MAXIMUM);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_MINIMUM);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_LESS);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_GREATER_EQUAL);
-REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_ADD);
+//REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_ADD);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_SUB);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_FLOOR_DIV);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_FLOOR_MOD);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_LESS_EQUAL);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_GREATER);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_EQUAL);
+REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_NOT_EQUAL);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_SQUARED_DIFFERENCE);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_MUL);
 REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_LOGICAL_AND);
+REGISTER_CONVERTER(BinaryTflite, BuiltinOperator_DIV);

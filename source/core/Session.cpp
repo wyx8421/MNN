@@ -8,57 +8,45 @@
 
 #include "core/Session.hpp"
 #include <string.h>
+#include <MNN/AutoTime.hpp>
 #include <map>
 #include <set>
-#include "core/AutoStorage.h"
-#include <MNN/AutoTime.hpp>
-#include "core/BackendFactory.hpp"
 #include "MNN_generated.h"
+#include "core/AutoStorage.h"
+#include "core/RuntimeFactory.hpp"
 #include "core/TensorUtils.hpp"
 #include "core/WrapExecution.hpp"
 
 using namespace std;
 
 namespace MNN {
-
-Backend* Session::_getDefaultBackend() {
-    auto defaultType = MNN_FORWARD_CPU;
-    if (mBackends.find(defaultType) == mBackends.end()) {
-        Backend::Info info;
-        info.type      = defaultType;
-        info.numThread = 1;
-        mBackends[info.type].reset(BackendFactory::create(info));
-    }
-    auto cpuBackend = mBackends.find(defaultType)->second.get();
-    return cpuBackend;
-}
-
-Session::Session(const Schedule::ScheduleInfo& info) {
+Session::Session(Schedule::ScheduleInfo&& info, Interpreter::SessionMode callBackMode,
+                 Interpreter::SessionMode inputMode, RuntimeInfo&& runtime) {
+    mRuntime = std::move(runtime);
     if (info.pipelineInfo.empty()) {
         mValid = false;
         return;
     }
-
-    mTensors = info.allTensors;
+    Backend::Info defaultInfo;
+    defaultInfo.type      = MNN_FORWARD_CPU;
+    defaultInfo.numThread = 1;
+    mTensors              = std::move(info.allTensors);
     for (auto& iter : info.pipelineInfo) {
-        if (mBackends.find(iter.first.type) == mBackends.end()) {
-            auto newBn = BackendFactory::create(iter.first);
-            if (nullptr == newBn) {
-                mValid = false;
-                return;
-            }
-            mBackends[iter.first.type].reset(newBn);
+        auto runtime    = mRuntime.first.find(iter.first.type)->second.get();
+        auto cpuRuntime = mRuntime.second;
+        std::shared_ptr<Backend> first(runtime->onCreate());
+        std::shared_ptr<Backend> second;
+        if (first->type() == MNN_FORWARD_CPU) {
+            second = first;
+        } else {
+            second.reset(cpuRuntime->onCreate());
         }
-        auto backend    = mBackends.find(iter.first.type)->second.get();
-        auto cpuBackend = _getDefaultBackend();
-        std::unique_ptr<Pipeline> newPipeline(new Pipeline(iter.second, backend, cpuBackend));
+        std::shared_ptr<Pipeline> newPipeline(new Pipeline(std::move(iter.second), first, second, inputMode == Interpreter::Session_Input_Inside, runtime->onGetCompilerType() == Runtime::Compiler_Geometry));
         mPipelines.emplace_back(std::move(newPipeline));
     }
-    mInputs  = info.inputTensors;
-    mOutputs = info.outputTensor;
-    for (auto& iter : mInputs) {
-        TensorUtils::getDescribe(iter.second)->isInput = true;
-    }
+    mInputs       = std::move(info.inputTensors);
+    mOutputs      = std::move(info.outputTensor);
+    mCallBackMode = callBackMode;
 }
 
 Session::~Session() {
@@ -66,13 +54,34 @@ Session::~Session() {
         TensorUtils::clearHandleData(t.second.get());
     }
     mPipelines.clear();
-    mBackends.clear();
+    mRuntime.first.clear();
     mTensors.clear();
+    mRuntime.second = nullptr;
+}
+
+bool Session::loadCache(const void* buffer, size_t size) {
+    for (auto iter : mRuntime.first) {
+        auto res = iter.second->onSetCache(buffer, size);
+        if (res) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::pair<const void*, size_t> Session::getCache() {
+    for (auto iter : mRuntime.first) {
+        auto res = iter.second->onGetCache();
+        if (res.first != nullptr) {
+            return res;
+        }
+    }
+    return std::make_pair(nullptr, 0);
 }
 
 ErrorCode Session::run() const {
     if (mNeedResize) {
-        MNN_ERROR("Can't run session because not resized");
+        MNN_ERROR("Can't run session because not resized\n");
         return COMPUTE_SIZE_ERROR;
     }
     for (auto& iter : mPipelines) {
@@ -87,18 +96,13 @@ ErrorCode Session::run() const {
 ErrorCode Session::runWithCallBack(const TensorCallBackWithInfo& before, const TensorCallBackWithInfo& end,
                                    bool sync) const {
     if (mNeedResize) {
-        MNN_ERROR("Can't run session because not resized");
+        MNN_ERROR("Can't run session because not resized\n");
         return COMPUTE_SIZE_ERROR;
     }
     for (auto& iter : mPipelines) {
         auto error = iter->executeCallBack(before, end);
         if (NO_ERROR != error) {
             return error;
-        }
-    }
-    if (sync) {
-        for (auto& bn : mBackends) {
-            bn.second->onWaitFinish();
         }
     }
     return NO_ERROR;
@@ -108,29 +112,54 @@ void Session::_clearCache() {
     for (auto& t : mTensors) {
         auto describe = TensorUtils::getDescribe(t.second.get());
         TensorUtils::clearHandleData(t.second.get());
-        describe->useCount = t.first;
+        describe->useCount = 0;
         describe->backend  = nullptr;
+        describe->regions.clear();
     }
 }
 
-ErrorCode Session::resize() {
-    _clearCache();
-    for (auto& b : mBackends) {
-        b.second->onClearBuffer();
+ErrorCode Session::resize(bool isStatic) {
+    for (auto& iter : mRuntime.first) {
+        iter.second->onGabageCollect(100);
     }
-
+    if (!isStatic) {
+        _clearCache();
+    }
+    bool debug = mCallBackMode == Interpreter::Session_Debug;
+    // Turn Pipeline to Command Buffer and Malloc resource
+    // TODO: Seperate Schedule and Malloc
     for (auto& iter : mPipelines) {
-        auto error = iter->prepare();
+        auto error = iter->encode(isStatic);
+        if (NO_ERROR != error) {
+            return error;
+        }
+        error = iter->allocMemory(debug);
         if (NO_ERROR != error) {
             return error;
         }
     }
     mNeedResize = false;
-    for (auto& b : mBackends) {
-        b.second->onAllocateBuffer();
+    for (auto& iter : mRuntime.first) {
+        iter.second->onGabageCollect(0);
     }
-
     return NO_ERROR;
+}
+bool Session::getInfo(Interpreter::SessionInfoCode code, void* ptr) const {
+    switch (code) {
+        case Interpreter::MEMORY: {
+            auto dst     = (float*)ptr;
+            float summer = mRuntime.second->onGetMemoryInMB();
+            for (auto& r : mRuntime.first) {
+                summer += r.second->onGetMemoryInMB();
+            }
+            *dst = summer;
+            return true;
+        } break;
+        // TODO: Support other debug info
+        default:
+            break;
+    }
+    return false;
 }
 
 const Backend* Session::getBackEnd(const Tensor* tensor) const {
@@ -173,19 +202,13 @@ const std::map<std::string, Tensor*>& Session::getOutputAll() const {
 }
 
 ErrorCode Session::releaseCache() {
-    for (auto& p : mPipelines) {
-        auto code = p->releaseCache();
-        if (NO_ERROR != code) {
-            return code;
-        }
-    }
     return NO_ERROR;
 }
 ErrorCode Session::updateToModel(Net* net) const {
     int opSize = net->oplists()->size();
     for (int i = 0; i < opSize; ++i) {
         auto op = net->oplists()->GetAs<Op>(i);
-        if (net->usage() == Usage_INFERENCE && op->type() != OpType_Const) {
+        if ((net->usage() == Usage_INFERENCE || net->usage() == Usage_INFERENCE_STATIC) && op->type() != OpType_Const) {
             continue;
         }
         if (net->usage() == Usage_TRAIN && op->type() != OpType_TrainableParam) {
